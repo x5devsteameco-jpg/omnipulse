@@ -3,8 +3,8 @@ import './globals.css';
 import '../lib/ui/enhanced.css';
 
 export const metadata: Metadata = {
-  title: 'AEG Social Media Analytics',
-  description: 'Social media analytics and marketing insights platform',
+  title: 'OmniPulse | Platinum Social Intelligence',
+  description: 'A-List Talent Social Media Analytics Platform',
 };
 
 export default function RootLayout({
