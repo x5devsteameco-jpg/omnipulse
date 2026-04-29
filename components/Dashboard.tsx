@@ -63,7 +63,7 @@ export default function Dashboard({
   return (
     <div className="dashboard">
       <aside className="sidebar">
-        <div className="sidebar-logo">AEG Analytics</div>
+        <div className="sidebar-logo">OmniPulse</div>
         <nav className="sidebar-nav">
           <a className="nav-item active">Dashboard</a>
           <a className="nav-item">Accounts</a>
@@ -80,7 +80,7 @@ export default function Dashboard({
           transition={{ duration: 0.4 }}
         >
           <p className="page-subtitle">Social Analytics</p>
-          <h1 className="page-title">AEG Social Media Dashboard</h1>
+          <h1 className="page-title">OmniPulse Analytics</h1>
         </motion.div>
 
         <div className="stats-grid">
