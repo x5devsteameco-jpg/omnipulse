@@ -54,889 +54,427 @@ const SABRINA_TENANT_CONFIG: TenantConfig = {
   updatedAt: '2026-04-29T00:00:00Z',
 };
 
-interface PlatformMetrics {
-  platform: string;
-  handle: string;
-  followers: number;
-  engagement: number;
-  views: number;
-  posts: number;
-  trend: 'up' | 'down' | 'stable';
-  color: string;
-  icon: string;
-  enabled: boolean;
-}
+const PLATFORMS = [
+  { platform: 'Instagram', icon: '📸', color: '#E4405F', followers: 2800000, engagement: 5.2 },
+  { platform: 'TikTok', icon: '🎵', color: '#000000', followers: 5200000, engagement: 8.4 },
+  { platform: 'YouTube', icon: '▶️', color: '#FF0000', followers: 2100000, engagement: 4.1 },
+  { platform: 'X (Twitter)', icon: '𝕏', color: '#1DA1F2', followers: 1900000, engagement: 2.3 },
+  { platform: 'Spotify', icon: '🎧', color: '#1DB954', followers: 8000000, engagement: 0 },
+  { platform: 'Facebook', icon: '👥', color: '#1877F2', followers: 1100000, engagement: 1.8 },
+];
 
-interface TrendingContent {
-  id: string;
-  title: string;
-  platform: string;
-  engagements: number;
-  impressions: number;
-  trend: 'up' | 'down' | 'stable';
-}
+const CAMPAIGNS = [
+  { name: 'Short n Sweet Album Launch', platform: 'Instagram', status: 'completed', impressions: 45000000, clicks: 890000, ctr: 1.98, cpm: 1.00, cpa: 3.60, roas: 12.5, spend: 45000 },
+  { name: 'World Tour 2025 Promo', platform: 'TikTok', status: 'active', impressions: 28000000, clicks: 620000, ctr: 2.21, cpm: 1.14, cpa: 3.81, roas: 11.2, spend: 32000 },
+  { name: "Man's Best Friend Drop", platform: 'Spotify', status: 'active', impressions: 15000000, clicks: 340000, ctr: 2.27, cpm: 1.20, cpa: 3.46, roas: 15.8, spend: 18000 },
+  { name: 'Grammy Campaign', platform: 'Multi', status: 'completed', impressions: 72000000, clicks: 1450000, ctr: 2.01, cpm: 1.18, cpa: 4.72, roas: 18.2, spend: 85000 },
+];
 
-interface MarketingGap {
-  id: string;
-  title: string;
-  description: string;
-  severity: 'critical' | 'high' | 'medium' | 'low';
-  recommendation: string;
-  affectedPlatforms: string[];
-  gapType: string;
-}
+const GAPS = [
+  { id: '1', title: 'Spotify Podcast Gap', description: 'No podcast presence despite 35M monthly listeners.', severity: 'critical', type: 'content', recommendation: 'Launch podcast series with exclusive content.' },
+  { id: '2', title: 'YouTube Shorts Underutilization', description: 'Only 12% of YouTube content repurposed for Shorts.', severity: 'high', type: 'format', recommendation: 'Convert tour content to 60-second shorts.' },
+  { id: '3', title: 'X Sentiment Drop', description: 'Sentiment at 62% following ticket pricing controversy.', severity: 'critical', type: 'engagement', recommendation: 'Launch community response initiative.' },
+  { id: '4', title: 'Brazil Market Gap', description: '3rd largest fan base but lowest engagement rate.', severity: 'medium', type: 'audience', recommendation: 'Portuguese-language content series.' },
+];
 
-interface Prediction {
-  metric: string;
-  current: number;
-  predicted: number;
-  confidence: 'high' | 'medium' | 'low';
-  timeframe: string;
-}
+const KPIs = [
+  { name: 'Total Followers', value: '61.1M', change: '+8.2%', color: '#d4af37' },
+  { name: 'Avg Engagement', value: '4.36%', change: '+0.6pp', color: '#22c55e' },
+  { name: 'Campaign ROAS', value: '14.2x', change: '+2.4x', color: '#22c55e' },
+  { name: 'Crisis Alerts', value: '1', change: 'Active', color: '#f43f5e' },
+  { name: 'Sentiment Score', value: '78%', change: '+6%', color: '#22c55e' },
+  { name: 'Monthly Revenue', value: '$485K', change: '+15.5%', color: '#d4af37' },
+];
 
-interface PeerComparison {
-  name: string;
-  followers: string;
-  engagement: string;
-  trend: string;
-  sabrinaAdvantage: string;
-}
+const WEBHOOKS = [
+  { url: 'https://api.sabrinacarpenter.com/webhooks', events: ['gap.identified', 'prediction.generated'], active: true, deliveries: 1247, failures: 3 },
+  { url: 'https://analytics.manager.com/webhooks', events: ['metrics.collected', 'alert.triggered'], active: true, deliveries: 8942, failures: 12 },
+  { url: 'https://crm.recordlabel.com/webhooks', events: ['campaign.started', 'campaign.completed'], active: false, deliveries: 456, failures: 89 },
+];
 
-interface TenantInfo {
-  name: string;
-  slug: string;
-  tier: string;
-  limits: {
-    maxAccounts: number;
-    maxUsers: number;
-    apiRateLimit: number;
-    dataRetentionDays: number;
-  };
-  features: {
-    sentimentAnalysis: boolean;
-    competitorBenchmarking: boolean;
-    predictiveML: boolean;
-    crisisAlerting: boolean;
-  };
-}
+const AUDIT_LOGS = [
+  { action: 'CONFIG_CHANGE', user: 'admin@omnipulse.com', resource: 'Tenant: sabrina-carpenter', timestamp: '2 min ago', details: 'Updated crisis alerting threshold' },
+  { action: 'EXPORT', user: 'analyst@omnipulse.com', resource: 'Report: Q1_2026', timestamp: '15 min ago', details: 'Exported 2,847 records as CSV' },
+  { action: 'CREATE', user: 'admin@omnipulse.com', resource: 'Campaign: World Tour 2025', timestamp: '1 hour ago', details: 'Campaign created with $32,000 budget' },
+  { action: 'ALERT_TRIGGERED', user: 'system', resource: 'Gap: X Sentiment Drop', timestamp: '2 hours ago', details: 'Automated alert sent to Slack' },
+  { action: 'LOGIN', user: 'manager@omnipulse.com', resource: 'Session', timestamp: '3 hours ago', details: 'Successful login' },
+];
 
 function formatNumber(num: number): string {
-  if (num >= 1000000000) return `${(num / 1000000000).toFixed(1)}B`;
-  if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
-  if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
+  if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+  if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
   return num.toString();
 }
 
-function TrendIcon({ direction }: { direction: 'up' | 'down' | 'stable' }) {
-  if (direction === 'up') return <span style={{ color: '#10b981' }}>↑</span>;
-  if (direction === 'down') return <span style={{ color: '#ef4444' }}>↓</span>;
-  return <span style={{ color: '#8a816f' }}>→</span>;
-}
-
-const PLATFORMS: PlatformMetrics[] = [
-  { platform: 'Instagram', handle: '@sabrinacarpenter', followers: 2800000, engagement: 5.2, views: 12000000, posts: 1240, trend: 'up', color: '#E4405F', icon: '📸', enabled: true },
-  { platform: 'TikTok', handle: '@sabrinacarpenter', followers: 5200000, engagement: 8.4, views: 35000000, posts: 890, trend: 'up', color: '#000000', icon: '🎵', enabled: true },
-  { platform: 'YouTube', handle: 'Sabrina Carpenter Official', followers: 2100000, engagement: 4.1, views: 180000000, posts: 156, trend: 'up', color: '#FF0000', icon: '▶️', enabled: true },
-  { platform: 'X (Twitter)', handle: '@SabrinaCarpenter', followers: 1900000, engagement: 2.3, views: 8500000, posts: 12400, trend: 'stable', color: '#1DA1F2', icon: '𝕏', enabled: true },
-  { platform: 'Spotify', handle: 'Sabrina Carpenter', followers: 8000000, engagement: 0, views: 35000000, posts: 0, trend: 'up', color: '#1DB954', icon: '🎧', enabled: true },
-  { platform: 'Facebook', handle: 'Sabrina Carpenter', followers: 1100000, engagement: 1.8, views: 4200000, posts: 680, trend: 'stable', color: '#1877F2', icon: '👥', enabled: true },
-];
-
-const TRENDING: TrendingContent[] = [
-  { id: '1', title: '"Espresso" Dance Challenge', platform: 'TikTok', engagements: 2500000, impressions: 50000000, trend: 'up' },
-  { id: '2', title: 'World Tour 2025 Behind The Scenes', platform: 'Instagram', engagements: 1850000, impressions: 12000000, trend: 'up' },
-  { id: '3', title: '"Please Please Please" Music Video', platform: 'YouTube', engagements: 1200000, impressions: 8000000, trend: 'stable' },
-  { id: '4', title: "Man's Best Friend Album Drop", platform: 'Spotify', engagements: 980000, impressions: 3500000, trend: 'up' },
-  { id: '5', title: 'Grammy Win Reaction', platform: 'TikTok', engagements: 890000, impressions: 15000000, trend: 'up' },
-];
-
-const GAPS: MarketingGap[] = [
-  { id: '1', title: 'Spotify Podcast Gap', description: 'No podcast presence despite 35M monthly listeners. Missing intimate fan connection medium.', severity: 'high', recommendation: 'Launch "Sabrina\'s Late Night" podcast — behind-the-scenes, musician chats, exclusive tracks.', affectedPlatforms: ['Spotify'], gapType: 'content' },
-  { id: '2', title: 'YouTube Shorts Underutilization', description: 'Only 12% of YouTube content repurposed for Shorts. Missing viral growth vector.', severity: 'high', recommendation: 'Convert tour content and rehearsal clips to 60-second shorts. Target 3x weekly upload.', affectedPlatforms: ['YouTube', 'TikTok'], gapType: 'format' },
-  { id: '3', title: 'X (Twitter) Negative Sentiment', description: 'Sentiment dropped to 62% positive following tour ticket pricing controversy.', severity: 'critical', recommendation: 'Launch community note response. Host Twitter Space with fan Q&A. Release official statement.', affectedPlatforms: ['X (Twitter)'], gapType: 'engagement' },
-  { id: '4', title: 'Brazil Market Engagement', description: '3rd largest fan base but lowest engagement rate. Cultural context gap identified.', severity: 'medium', recommendation: 'Portuguese-language content series. Local influencer partnerships in São Paulo.', affectedPlatforms: ['Instagram', 'TikTok'], gapType: 'audience' },
-];
-
-const PREDICTIONS: Prediction[] = [
-  { metric: 'Combined Followers', current: 61100000, predicted: 65000000, confidence: 'high', timeframe: '90 Days' },
-  { metric: 'TikTok Growth Rate', current: 5200000, predicted: 5800000, confidence: 'high', timeframe: '60 Days' },
-  { metric: 'Album Streaming', current: 35000000, predicted: 42000000, confidence: 'medium', timeframe: '30 Days' },
-  { metric: 'Tour Gross Revenue', current: 47000000, predicted: 52000000, confidence: 'medium', timeframe: '90 Days' },
-];
-
-const PEER_COMPARISON: PeerComparison[] = [
-  { name: 'Taylor Swift', followers: '250M', engagement: '3.2%', trend: '↑ 2.1%', sabrinaAdvantage: 'TikTok Growth +312%' },
-  { name: 'Ariana Grande', followers: '80M', engagement: '4.1%', trend: '↓ 0.8%', sabrinaAdvantage: 'Combined Reach +18%' },
-  { name: 'Olivia Rodrigo', followers: '35M', engagement: '5.8%', trend: '↑ 4.2%', sabrinaAdvantage: 'Tour Revenue +240%' },
-  { name: 'Tate McRae', followers: '15M', engagement: '7.2%', trend: '↑ 12.1%', sabrinaAdvantage: 'Billboard #1 Albums +100%' },
-];
-
-const SABRINA_PROFILE = {
-  name: 'Sabrina Carpenter',
-  classification: 'Platinum — A-List Talent',
-  age: 26,
-  label: 'Island Records (Universal)',
-  grammyWins: 2,
-  billboard200: 2,
-  hot100: 2,
-  combinedReach: '61.1M',
-  tourStatus: 'World Tour 2025-2026',
-  albums: 7,
-};
-
-const SEVERITY_STYLES: Record<string, { bg: string; border: string; text: string }> = {
-  critical: { bg: 'rgba(244, 63, 94, 0.15)', border: 'rgba(244, 63, 94, 0.4)', text: '#f43f5e' },
-  high: { bg: 'rgba(245, 158, 11, 0.15)', border: 'rgba(245, 158, 11, 0.4)', text: '#f59e0b' },
-  medium: { bg: 'rgba(212, 175, 55, 0.15)', border: 'rgba(212, 175, 55, 0.4)', text: '#d4af37' },
-  low: { bg: 'rgba(59, 130, 246, 0.15)', border: 'rgba(59, 130, 246, 0.4)', text: '#3b82f6' },
-};
-
 function DashboardContent() {
-  const { theme, tenantConfig } = useTenantTheme();
-  const [activeTab, setActiveTab] = useState<'overview' | 'content' | 'competitive' | 'gaps' | 'settings'>('overview');
-  const [tenantInfo, setTenantInfo] = useState<TenantInfo | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { theme } = useTenantTheme();
+  const [activeTab, setActiveTab] = useState('overview');
+  const [health] = useState({ status: 'healthy', uptime: 99.97, requests: 894234, cacheHit: 94.2 });
+  const [rateLimit] = useState({ limit: 1000, remaining: 847 });
 
   const totalFollowers = PLATFORMS.reduce((sum, p) => sum + p.followers, 0);
-  const avgEngagement = PLATFORMS.reduce((sum, p) => sum + p.engagement, 0) / PLATFORMS.length;
-  const criticalGaps = GAPS.filter(g => g.severity === 'critical').length;
-
-  useEffect(() => {
-    async function fetchTenantInfo() {
-      try {
-        const res = await fetch('/api/tenants/sabrina-carpenter');
-        if (res.ok) {
-          const data = await res.json();
-          setTenantInfo(data.tenant);
-        }
-      } catch (err) {
-        console.error('Failed to fetch tenant info:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    fetchTenantInfo();
-  }, []);
 
   const tabs = [
     { id: 'overview', label: 'Overview' },
-    { id: 'content', label: 'Content' },
-    { id: 'competitive', label: 'Competitive' },
+    { id: 'campaigns', label: 'Campaigns' },
+    { id: 'kpis', label: 'KPIs' },
     { id: 'gaps', label: 'Gaps' },
+    { id: 'accounts', label: 'Accounts' },
+    { id: 'webhooks', label: 'Webhooks' },
+    { id: 'audit', label: 'Audit' },
     { id: 'settings', label: 'Settings' },
   ];
 
+  const bgSurface = theme?.colors?.surface || '#18181b';
+  const bgBg = theme?.colors?.background || '#09090b';
+  const border = theme?.colors?.border || '#3f3f46';
+  const textPrimary = theme?.colors?.textPrimary || '#fafafa';
+  const textSecondary = theme?.colors?.textSecondary || '#a1a1aa';
+  const textDim = theme?.colors?.textDim || '#71717a';
+  const primary = theme?.colors?.primary || '#d4af37';
+  const accent = theme?.colors?.accent || '#22c55e';
+
+  const cardStyle = {
+    padding: 24,
+    borderRadius: 16,
+    background: bgSurface + '99',
+    backdropFilter: 'blur(20px)',
+    border: '1px solid ' + border,
+  };
+
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: `linear-gradient(135deg, ${theme?.colors?.background || '#09090b'} 0%, ${theme?.colors?.surface || '#18181b'} 50%, #050510 100%)`,
-      color: theme?.colors?.textPrimary || '#fafafa',
-      fontFamily: theme?.fontFamily || 'Inter, system-ui, sans-serif',
-    }}>
-      <style>{`
-        @keyframes shimmer {
-          0% { background-position: -200% 0; }
-          100% { background-position: 200% 0; }
-        }
-        @keyframes pulse-glow {
-          0%, 100% { opacity: 0.6; }
-          50% { opacity: 1; }
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-      `}</style>
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, ' + bgBg + ' 0%, ' + bgSurface + ' 50%, ' + bgBg + ' 100%)', color: textPrimary, fontFamily: theme?.fontFamily || 'Inter, sans-serif' }}>
+      <style>{`* { box-sizing: border-box; margin: 0; padding: 0 }`}</style>
 
       {/* Header */}
-      <header style={{
-        borderBottom: `1px solid ${theme?.colors?.border || '#3f3f46'}`,
-        padding: '16px 32px',
-        background: `rgba(${hexToRgb(theme?.colors?.background || '#09090b')}, 0.8)`,
-        backdropFilter: 'blur(20px)',
-        position: 'sticky',
-        top: 0,
-        zIndex: 100,
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: 1400, margin: '0 auto' }}>
+      <header style={{ borderBottom: '1px solid ' + border, padding: '16px 32px', background: bgBg + 'e6', backdropFilter: 'blur(20px)', position: 'sticky', top: 0, zIndex: 100 }}>
+        <div style={{ maxWidth: 1600, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <div style={{
-              width: 40,
-              height: 40,
-              borderRadius: 10,
-              background: `linear-gradient(135deg, ${theme?.colors?.primary || '#d4af37'} 0%, ${theme?.colors?.accent || '#22c55e'} 100%)`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 700,
-              fontSize: 18,
-              color: '#000',
-              boxShadow: `0 0 20px ${theme?.colors?.primary || '#d4af37'}66`,
-            }}>
-              O
-            </div>
+            <div style={{ width: 40, height: 40, borderRadius: 10, background: 'linear-gradient(135deg, ' + primary + ', ' + accent + ')', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 18, color: '#000' }}>O</div>
             <div>
-              <h1 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: theme?.colors?.textPrimary }}>
-                {tenantConfig?.brandName || 'OmniPulse'}
-              </h1>
-              <p style={{ fontSize: 10, color: theme?.colors?.textDim || '#71717a', margin: 0, textTransform: 'uppercase', letterSpacing: 1 }}>
-                {tenantInfo?.tier || 'Enterprise'} • Multi-Tenant
-              </p>
+              <h1 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: textPrimary }}>{SABRINA_TENANT_CONFIG.brandName}</h1>
+              <p style={{ fontSize: 10, color: textDim, margin: 0, textTransform: 'uppercase', letterSpacing: 1 }}>Enterprise Multi-Tenant</p>
             </div>
           </div>
-
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <div style={{
-              padding: '6px 14px',
-              borderRadius: 20,
-              background: `${theme?.colors?.primary || '#d4af37'}15`,
-              border: `1px solid ${theme?.colors?.primary || '#d4af37'}40`,
-            }}>
-              <span style={{ fontSize: 11, color: theme?.colors?.primary || '#d4af37', fontWeight: 600 }}>
-                {tenantInfo?.limits?.apiRateLimit || 1000} req/min
-              </span>
+            <div style={{ padding: '6px 14px', borderRadius: 8, background: bgSurface, border: '1px solid ' + border }}>
+              <span style={{ fontSize: 11, color: textDim }}>Rate: </span>
+              <span style={{ fontSize: 11, color: primary, fontWeight: 600 }}>{rateLimit.remaining}/{rateLimit.limit}</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{
-                width: 8,
-                height: 8,
-                borderRadius: '50%',
-                background: '#10b981',
-                boxShadow: '0 0 8px #10b981',
-                animation: 'pulse-glow 2s ease-in-out infinite',
-              }} />
-              <span style={{ fontSize: 12, color: theme?.colors?.textDim || '#71717a' }}>Live</span>
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 8px #10b981' }} />
+              <span style={{ fontSize: 12, color: textDim }}>{health.status}</span>
             </div>
           </div>
         </div>
       </header>
 
-      <main style={{ maxWidth: 1400, margin: '0 auto', padding: '32px' }}>
+      <main style={{ maxWidth: 1600, margin: '0 auto', padding: 32 }}>
         {/* Tenant Badge */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 8,
-            padding: '8px 16px',
-            borderRadius: 12,
-            background: `${theme?.colors?.primary || '#d4af37'}10`,
-            border: `1px solid ${theme?.colors?.primary || '#d4af37'}30`,
-            marginBottom: 24,
-          }}
-        >
-          <span style={{ fontSize: 12, color: theme?.colors?.textSecondary || '#a1a1aa' }}>
-            Tenant:
-          </span>
-          <span style={{ fontSize: 12, color: theme?.colors?.primary || '#d4af37', fontWeight: 600 }}>
-            {tenantInfo?.name || 'Sabrina Carpenter'}
-          </span>
-          <span style={{ fontSize: 10, color: theme?.colors?.textDim || '#71717a' }}>
-            ({tenantInfo?.slug || 'sabrina-carpenter'})
-          </span>
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 16px', borderRadius: 12, background: primary + '15', border: '1px solid ' + primary + '30', marginBottom: 24 }}>
+          <span style={{ fontSize: 10, color: textDim, textTransform: 'uppercase' }}>Tenant:</span>
+          <span style={{ fontSize: 12, color: primary, fontWeight: 600 }}>sabrina-carpenter</span>
+          <span style={{ fontSize: 10, color: '#10b981', background: 'rgba(16,185,129,0.15)', padding: '2px 8px', borderRadius: 4 }}>Active</span>
         </motion.div>
 
         {/* Talent Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          style={{
-            marginBottom: 32,
-            padding: 32,
-            borderRadius: 20,
-            background: `${theme?.colors?.surface || '#18181b'}80`,
-            backdropFilter: 'blur(20px)',
-            border: `1px solid ${theme?.colors?.border || '#3f3f46'}`,
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-        >
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            right: 0,
-            width: 400,
-            height: 400,
-            background: `radial-gradient(circle at center, ${theme?.colors?.primary || '#d4af37'}08 0%, transparent 70%)`,
-            pointerEvents: 'none',
-          }} />
-
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ ...cardStyle, marginBottom: 32, position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', top: 0, right: 0, width: 400, height: 400, background: 'radial-gradient(circle at center, ' + primary + '08 0%, transparent 70%)', pointerEvents: 'none' }} />
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 24, position: 'relative' }}>
-            <div style={{
-              width: 100,
-              height: 100,
-              borderRadius: 20,
-              background: `linear-gradient(135deg, ${theme?.colors?.primary || '#d4af37'} 0%, ${theme?.colors?.accent || '#22c55e'} 100%)`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 36,
-              fontWeight: 700,
-              boxShadow: `0 0 40px ${theme?.colors?.primary || '#d4af37'}40`,
-              flexShrink: 0,
-            }}>
-              SC
-            </div>
-
+            <div style={{ width: 100, height: 100, borderRadius: 20, background: 'linear-gradient(135deg, ' + primary + ', ' + accent + ')', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 36, fontWeight: 700, boxShadow: '0 0 40px ' + primary + '40', flexShrink: 0 }}>SC</div>
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-                <h2 style={{ fontSize: 28, fontWeight: 700, margin: 0, color: theme?.colors?.textPrimary }}>
-                  {SABRINA_PROFILE.name}
-                </h2>
-                <span style={{
-                  fontSize: 9,
-                  padding: '4px 10px',
-                  borderRadius: 20,
-                  background: `${theme?.colors?.primary || '#d4af37'}20`,
-                  border: `1px solid ${theme?.colors?.primary || '#d4af37'}40`,
-                  color: theme?.colors?.primary || '#d4af37',
-                  textTransform: 'uppercase',
-                  fontWeight: 700,
-                  letterSpacing: 0.5,
-                }}>
-                  🏆 Grammy Winner
-                </span>
+                <h2 style={{ fontSize: 28, fontWeight: 700, margin: 0, color: textPrimary }}>Sabrina Carpenter</h2>
+                <span style={{ fontSize: 9, padding: '4px 10px', borderRadius: 20, background: primary + '20', border: '1px solid ' + primary + '40', color: primary, textTransform: 'uppercase', fontWeight: 700, letterSpacing: 0.5 }}>Grammy Winner</span>
               </div>
-
-              <p style={{ fontSize: 14, color: theme?.colors?.textSecondary || '#a1a1aa', margin: '0 0 16px' }}>
-                {SABRINA_PROFILE.label} • Age {SABRINA_PROFILE.age} • {SABRINA_PROFILE.tourStatus}
-              </p>
-
+              <p style={{ fontSize: 14, color: textSecondary, margin: '0 0 16px' }}>Island Records (Universal) Age 26 World Tour 2025-2026</p>
               <div style={{ display: 'flex', gap: 24 }}>
-                {[
-                  { label: 'Grammy Wins', value: SABRINA_PROFILE.grammyWins },
-                  { label: 'Billboard #1 Albums', value: SABRINA_PROFILE.billboard200 },
-                  { label: 'Hot 100 #1 Singles', value: SABRINA_PROFILE.hot100 },
-                  { label: 'Combined Reach', value: SABRINA_PROFILE.combinedReach },
-                  { label: 'Studio Albums', value: SABRINA_PROFILE.albums },
-                ].map((stat) => (
-                  <div key={stat.label}>
-                    <p style={{ fontSize: 20, fontWeight: 700, color: theme?.colors?.primary || '#d4af37', margin: 0 }}>{stat.value}</p>
-                    <p style={{ fontSize: 10, color: theme?.colors?.textDim || '#71717a', margin: 0, textTransform: 'uppercase' }}>{stat.label}</p>
-                  </div>
-                ))}
+                <div><p style={{ fontSize: 20, fontWeight: 700, color: primary, margin: 0 }}>2</p><p style={{ fontSize: 10, color: textDim, margin: 0, textTransform: 'uppercase' }}>Grammy Wins</p></div>
+                <div><p style={{ fontSize: 20, fontWeight: 700, color: primary, margin: 0 }}>2</p><p style={{ fontSize: 10, color: textDim, margin: 0, textTransform: 'uppercase' }}>Billboard #1</p></div>
+                <div><p style={{ fontSize: 20, fontWeight: 700, color: primary, margin: 0 }}>61.1M</p><p style={{ fontSize: 10, color: textDim, margin: 0, textTransform: 'uppercase' }}>Combined Reach</p></div>
+                <div><p style={{ fontSize: 20, fontWeight: 700, color: primary, margin: 0 }}>7</p><p style={{ fontSize: 10, color: textDim, margin: 0, textTransform: 'uppercase' }}>Studio Albums</p></div>
               </div>
             </div>
           </div>
         </motion.div>
 
-        {/* Navigation Tabs */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
+        {/* Tabs */}
+        <div style={{ display: 'flex', gap: 4, marginBottom: 24, overflowX: 'auto', paddingBottom: 8 }}>
           {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as typeof activeTab)}
-              style={{
-                padding: '10px 20px',
-                borderRadius: 10,
-                border: 'none',
-                cursor: 'pointer',
-                fontSize: 13,
-                fontWeight: 500,
-                transition: 'all 0.2s',
-                background: activeTab === tab.id ? `${theme?.colors?.primary || '#d4af37'}20` : `${theme?.colors?.surface || '#18181b'}`,
-                color: activeTab === tab.id ? theme?.colors?.primary || '#d4af37' : theme?.colors?.textSecondary || '#a1a1aa',
-                borderColor: activeTab === tab.id ? `${theme?.colors?.primary || '#d4af37'}40` : 'transparent',
-              }}
-            >
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{ padding: '10px 18px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 500, whiteSpace: 'nowrap', background: activeTab === tab.id ? primary + '20' : bgSurface, color: activeTab === tab.id ? primary : textSecondary, transition: 'all 0.2s' }}>
               {tab.label}
             </button>
           ))}
         </div>
 
-        {/* KPI Cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20, marginBottom: 32 }}>
-          {[
-            { label: 'Total Follower Reach', value: formatNumber(totalFollowers), change: '+8.2%', color: theme?.colors?.primary || '#d4af37', sparkline: [55, 57, 58, 59, 60, 61] },
-            { label: 'Avg Engagement Rate', value: `${avgEngagement.toFixed(1)}%`, change: '+0.6pp', color: theme?.colors?.accent || '#22c55e', sparkline: [4.2, 4.5, 4.8, 5.0, 5.1, 5.2] },
-            { label: 'Critical Marketing Gaps', value: criticalGaps.toString(), change: `${GAPS.length} total`, color: criticalGaps > 0 ? '#f43f5e' : theme?.colors?.accent || '#22c55e', sparkline: [2, 2, 3, 1, 1, criticalGaps] },
-          ].map((kpi, i) => (
-            <motion.div
-              key={kpi.label}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1 }}
-              style={{
-                padding: 24,
-                borderRadius: 16,
-                background: `${theme?.colors?.surface || '#18181b'}60`,
-                backdropFilter: 'blur(20px)',
-                border: `1px solid ${theme?.colors?.border || '#3f3f46'}`,
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-              }}
-              whileHover={{
-                borderColor: `${kpi.color}60`,
-                y: -2,
-                boxShadow: `0 8px 30px ${kpi.color}20`
-              }}
-            >
-              <p style={{ fontSize: 11, color: theme?.colors?.textDim || '#71717a', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>{kpi.label}</p>
-              <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
-                <p style={{ fontSize: 32, fontWeight: 700, color: kpi.color, margin: 0 }}>{kpi.value}</p>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
-                  <span style={{ fontSize: 12, color: '#10b981', fontWeight: 600 }}>{kpi.change}</span>
-                  <svg width="60" height="24" viewBox="0 0 60 24">
-                    <defs>
-                      <linearGradient id={`grad-${i}`} x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor={kpi.color} stopOpacity="0.3" />
-                        <stop offset="100%" stopColor={kpi.color} />
-                      </linearGradient>
-                    </defs>
-                    <polyline
-                      points={`${kpi.sparkline.map((v, idx) => `${idx * 12},${24 - (v / Math.max(...kpi.sparkline) * 20)}`).join(' ')}`}
-                      fill="none"
-                      stroke={`url(#grad-${i})`}
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-
         <AnimatePresence mode="wait">
+          {/* OVERVIEW */}
           {activeTab === 'overview' && (
-            <motion.div
-              key="overview"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}
-            >
-              {/* Platform Breakdown */}
-              <div style={{
-                padding: 24,
-                borderRadius: 16,
-                background: `${theme?.colors?.surface || '#18181b'}60`,
-                backdropFilter: 'blur(20px)',
-                border: `1px solid ${theme?.colors?.border || '#3f3f46'}`,
-              }}>
-                <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 20, color: theme?.colors?.textPrimary }}>Platform Breakdown</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                  {PLATFORMS.filter(p => p.enabled).map((platform) => (
-                    <div key={platform.platform} style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                      <div style={{
-                        width: 44,
-                        height: 44,
-                        borderRadius: 12,
-                        background: `${platform.color}20`,
-                        border: `1px solid ${platform.color}40`,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: 18,
-                      }}>
-                        {platform.icon}
-                      </div>
+            <motion.div key="overview" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 24 }}>
+              <div style={cardStyle}>
+                <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 20, color: textPrimary }}>Platform Breakdown</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  {PLATFORMS.map((p) => (
+                    <div key={p.platform} style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                      <div style={{ width: 40, height: 40, borderRadius: 10, background: p.color + '20', border: '1px solid ' + p.color + '40', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>{p.icon}</div>
                       <div style={{ flex: 1 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                          <span style={{ fontSize: 14, fontWeight: 600, color: theme?.colors?.textPrimary }}>{platform.platform}</span>
-                          <span style={{ fontSize: 10, color: theme?.colors?.textDim || '#71717a' }}>{platform.handle}</span>
-                          <TrendIcon direction={platform.trend} />
+                          <span style={{ fontSize: 13, fontWeight: 600, color: textPrimary }}>{p.platform}</span>
                         </div>
-                        <div style={{ height: 6, background: `${theme?.colors?.border || '#3f3f46'}40`, borderRadius: 3, overflow: 'hidden' }}>
-                          <div style={{
-                            height: '100%',
-                            width: `${(platform.engagement / 10) * 100}%`,
-                            background: platform.color,
-                            borderRadius: 3,
-                          }} />
+                        <div style={{ height: 4, background: border + '40', borderRadius: 2, overflow: 'hidden' }}>
+                          <div style={{ height: '100%', width: (p.engagement / 10) * 100 + '%', background: p.color, borderRadius: 2 }} />
                         </div>
                       </div>
                       <div style={{ textAlign: 'right' }}>
-                        <p style={{ fontSize: 14, fontWeight: 600, color: theme?.colors?.textPrimary, margin: 0 }}>{formatNumber(platform.followers)}</p>
-                        <p style={{ fontSize: 10, color: theme?.colors?.textDim || '#71717a', margin: 0 }}>{platform.engagement}% eng.</p>
+                        <p style={{ fontSize: 13, fontWeight: 600, color: textPrimary, margin: 0 }}>{formatNumber(p.followers)}</p>
+                        <p style={{ fontSize: 10, color: textDim, margin: 0 }}>{p.engagement}%</p>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
-
-              {/* Trending Content */}
-              <div style={{
-                padding: 24,
-                borderRadius: 16,
-                background: `${theme?.colors?.surface || '#18181b'}60`,
-                backdropFilter: 'blur(20px)',
-                border: `1px solid ${theme?.colors?.border || '#3f3f46'}`,
-              }}>
-                <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 20, color: theme?.colors?.textPrimary }}>Trending Content</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  {TRENDING.map((content, i) => (
-                    <motion.div
-                      key={content.id}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.05 }}
-                      style={{
-                        padding: 16,
-                        borderRadius: 12,
-                        background: `${theme?.colors?.background || '#09090b'}60`,
-                        border: `1px solid ${theme?.colors?.border || '#3f3f46'}40`,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 16,
-                        cursor: 'pointer',
-                      }}
-                      whileHover={{ x: 4 }}
-                    >
-                      <span style={{
-                        width: 28,
-                        height: 28,
-                        borderRadius: 8,
-                        background: `linear-gradient(135deg, ${theme?.colors?.primary || '#d4af37'} 0%, ${theme?.colors?.accent || '#22c55e'} 100%)`,
-                        color: '#000',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: 12,
-                        fontWeight: 700,
-                      }}>
-                        {i + 1}
-                      </span>
-                      <div style={{ flex: 1 }}>
-                        <p style={{ fontSize: 13, fontWeight: 500, margin: '0 0 2px', color: theme?.colors?.textPrimary }}>{content.title}</p>
-                        <p style={{ fontSize: 11, color: theme?.colors?.textDim || '#71717a', margin: 0 }}>{content.platform}</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                <div style={cardStyle}>
+                  <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 16, color: textPrimary }}>Key Metrics</h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {KPIs.slice(0, 4).map((kpi) => (
+                      <div key={kpi.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: 12, color: textSecondary }}>{kpi.name}</span>
+                        <span style={{ fontSize: 14, fontWeight: 600, color: kpi.color }}>{kpi.value}</span>
                       </div>
-                      <div style={{ textAlign: 'right' }}>
-                        <p style={{ fontSize: 13, fontWeight: 600, color: theme?.colors?.primary || '#d4af37', margin: 0 }}>{formatNumber(content.engagements)}</p>
-                        <p style={{ fontSize: 10, color: theme?.colors?.textDim || '#71717a', margin: 0 }}>engagements</p>
-                      </div>
-                      <TrendIcon direction={content.trend} />
-                    </motion.div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               </div>
             </motion.div>
           )}
 
-          {activeTab === 'competitive' && (
-            <motion.div
-              key="competitive"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              style={{
-                padding: 24,
-                borderRadius: 16,
-                background: `${theme?.colors?.surface || '#18181b'}60`,
-                backdropFilter: 'blur(20px)',
-                border: `1px solid ${theme?.colors?.border || '#3f3f46'}`,
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-                <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0, color: theme?.colors?.textPrimary }}>A-List Competitive Matrix</h3>
-                {tenantInfo?.features?.competitorBenchmarking && (
-                  <span style={{
-                    fontSize: 9,
-                    padding: '4px 10px',
-                    borderRadius: 20,
-                    background: `${theme?.colors?.accent || '#22c55e'}20`,
-                    border: `1px solid ${theme?.colors?.accent || '#22c55e'}40`,
-                    color: theme?.colors?.accent || '#22c55e',
-                    textTransform: 'uppercase',
-                    fontWeight: 600,
-                  }}>
-                    Feature Active
-                  </span>
-                )}
+          {/* CAMPAIGNS */}
+          {activeTab === 'campaigns' && (
+            <motion.div key="campaigns" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+              <div style={cardStyle}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                  <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0, color: textPrimary }}>Campaign ROI Tracking</h3>
+                  <button style={{ padding: '8px 16px', borderRadius: 8, background: primary, color: '#000', border: 'none', fontWeight: 600, fontSize: 12, cursor: 'pointer' }}>+ New Campaign</button>
+                </div>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid ' + border }}>
+                      <th style={{ textAlign: 'left', padding: '12px 8px', color: textDim, fontWeight: 500, textTransform: 'uppercase', fontSize: 10 }}>Campaign</th>
+                      <th style={{ textAlign: 'left', padding: '12px 8px', color: textDim, fontWeight: 500, textTransform: 'uppercase', fontSize: 10 }}>Status</th>
+                      <th style={{ textAlign: 'right', padding: '12px 8px', color: textDim, fontWeight: 500, textTransform: 'uppercase', fontSize: 10 }}>Impressions</th>
+                      <th style={{ textAlign: 'right', padding: '12px 8px', color: textDim, fontWeight: 500, textTransform: 'uppercase', fontSize: 10 }}>CTR</th>
+                      <th style={{ textAlign: 'right', padding: '12px 8px', color: textDim, fontWeight: 500, textTransform: 'uppercase', fontSize: 10 }}>CPM</th>
+                      <th style={{ textAlign: 'right', padding: '12px 8px', color: textDim, fontWeight: 500, textTransform: 'uppercase', fontSize: 10 }}>CPA</th>
+                      <th style={{ textAlign: 'right', padding: '12px 8px', color: textDim, fontWeight: 500, textTransform: 'uppercase', fontSize: 10 }}>ROAS</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {CAMPAIGNS.map((c) => (
+                      <tr key={c.name} style={{ borderBottom: '1px solid ' + border + '40' }}>
+                        <td style={{ padding: '14px 8px' }}><div style={{ fontWeight: 500, color: textPrimary }}>{c.name}</div><div style={{ fontSize: 10, color: textDim }}>{c.platform}</div></td>
+                        <td style={{ padding: '14px 8px' }}><span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 4, fontWeight: 600, textTransform: 'uppercase', background: c.status === 'active' ? 'rgba(16,185,129,0.15)' : 'rgba(59,130,246,0.15)', color: c.status === 'active' ? '#10b981' : '#3b82f6' }}>{c.status}</span></td>
+                        <td style={{ padding: '14px 8px', textAlign: 'right', color: textPrimary }}>{formatNumber(c.impressions)}</td>
+                        <td style={{ padding: '14px 8px', textAlign: 'right', color: textPrimary }}>{c.ctr.toFixed(2)}%</td>
+                        <td style={{ padding: '14px 8px', textAlign: 'right', color: textPrimary }}>${c.cpm.toFixed(2)}</td>
+                        <td style={{ padding: '14px 8px', textAlign: 'right', color: textPrimary }}>${c.cpa.toFixed(2)}</td>
+                        <td style={{ padding: '14px 8px', textAlign: 'right', color: '#10b981', fontWeight: 600 }}>{c.roas.toFixed(1)}x</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {PEER_COMPARISON.map((peer) => (
-                  <div
-                    key={peer.name}
-                    style={{
-                      padding: 20,
-                      borderRadius: 12,
-                      background: `${theme?.colors?.background || '#09090b'}60`,
-                      border: `1px solid ${theme?.colors?.border || '#3f3f46'}40`,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 24,
-                    }}
-                  >
-                    <div style={{ width: 120 }}>
-                      <p style={{ fontSize: 14, fontWeight: 600, margin: 0, color: theme?.colors?.textPrimary }}>{peer.name}</p>
-                    </div>
-                    <div style={{ flex: 1, display: 'flex', gap: 32 }}>
-                      <div>
-                        <p style={{ fontSize: 10, color: theme?.colors?.textDim || '#71717a', margin: '0 0 2px', textTransform: 'uppercase' }}>Followers</p>
-                        <p style={{ fontSize: 14, fontWeight: 600, margin: 0, color: theme?.colors?.textPrimary }}>{peer.followers}</p>
-                      </div>
-                      <div>
-                        <p style={{ fontSize: 10, color: theme?.colors?.textDim || '#71717a', margin: '0 0 2px', textTransform: 'uppercase' }}>Engagement</p>
-                        <p style={{ fontSize: 14, fontWeight: 600, margin: 0, color: theme?.colors?.textPrimary }}>{peer.engagement}</p>
-                      </div>
-                      <div>
-                        <p style={{ fontSize: 10, color: theme?.colors?.textDim || '#71717a', margin: '0 0 2px', textTransform: 'uppercase' }}>Trend</p>
-                        <p style={{ fontSize: 14, fontWeight: 600, margin: 0, color: peer.trend.startsWith('↑') ? '#10b981' : '#f43f5e' }}>{peer.trend}</p>
-                      </div>
-                    </div>
-                    <div style={{
-                      padding: '8px 16px',
-                      borderRadius: 8,
-                      background: 'rgba(16, 185, 129, 0.1)',
-                      border: '1px solid rgba(16, 185, 129, 0.3)',
-                    }}>
-                      <p style={{ fontSize: 11, color: '#10b981', fontWeight: 600, margin: 0 }}>{peer.sabrinaAdvantage}</p>
-                    </div>
-                  </div>
+            </motion.div>
+          )}
+
+          {/* KPIs */}
+          {activeTab === 'kpis' && (
+            <motion.div key="kpis" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
+                {KPIs.map((kpi, i) => (
+                  <motion.div key={kpi.name} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} style={cardStyle}>
+                    <span style={{ fontSize: 11, color: textDim, textTransform: 'uppercase', letterSpacing: 0.5 }}>{kpi.name}</span>
+                    <p style={{ fontSize: 28, fontWeight: 700, color: kpi.color, margin: '12px 0 8px' }}>{kpi.value}</p>
+                    <span style={{ fontSize: 11, color: '#10b981', fontWeight: 600 }}>{kpi.change}</span>
+                  </motion.div>
                 ))}
               </div>
             </motion.div>
           )}
 
+          {/* GAPS */}
           {activeTab === 'gaps' && (
-            <motion.div
-              key="gaps"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
-            >
+            <motion.div key="gaps" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {GAPS.map((gap) => {
-                const style = SEVERITY_STYLES[gap.severity];
+                const colors = { critical: '#f43f5e', high: '#f59e0b', medium: '#d4af37', low: '#3b82f6' };
+                const color = colors[gap.severity as keyof typeof colors] || colors.medium;
                 return (
-                  <motion.div
-                    key={gap.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    style={{
-                      padding: 24,
-                      borderRadius: 16,
-                      background: style.bg,
-                      border: `1px solid ${style.border}`,
-                      position: 'relative',
-                      overflow: 'hidden',
-                    }}
-                  >
-                    <div style={{
-                      position: 'absolute',
-                      left: 0,
-                      top: 0,
-                      width: 4,
-                      height: '100%',
-                      background: style.text,
-                    }} />
+                  <div key={gap.id} style={{ padding: 24, borderRadius: 16, background: color + '15', border: '1px solid ' + color + '40', position: 'relative', overflow: 'hidden' }}>
+                    <div style={{ position: 'absolute', left: 0, top: 0, width: 4, height: '100%', background: color }} />
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, paddingLeft: 12 }}>
                       <div style={{ flex: 1 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-                          <h4 style={{ fontSize: 15, fontWeight: 600, margin: 0, color: theme?.colors?.textPrimary }}>{gap.title}</h4>
-                          <span style={{
-                            fontSize: 9,
-                            padding: '3px 10px',
-                            borderRadius: 20,
-                            background: `${style.text}20`,
-                            color: style.text,
-                            textTransform: 'uppercase',
-                            fontWeight: 700,
-                            letterSpacing: 0.5,
-                          }}>
-                            {gap.severity}
-                          </span>
-                          <span style={{
-                            fontSize: 9,
-                            padding: '3px 8px',
-                            borderRadius: 4,
-                            background: `${theme?.colors?.surface || '#18181b'}`,
-                            color: theme?.colors?.textDim || '#71717a',
-                            textTransform: 'uppercase',
-                            fontWeight: 600,
-                          }}>
-                            {gap.gapType}
-                          </span>
+                          <h4 style={{ fontSize: 15, fontWeight: 600, margin: 0, color: textPrimary }}>{gap.title}</h4>
+                          <span style={{ fontSize: 9, padding: '3px 10px', borderRadius: 20, background: color + '20', color: color, textTransform: 'uppercase', fontWeight: 700 }}>{gap.severity}</span>
+                          <span style={{ fontSize: 9, padding: '3px 8px', borderRadius: 4, background: bgSurface, color: textDim, textTransform: 'uppercase' }}>{gap.type}</span>
                         </div>
-                        <p style={{ fontSize: 13, color: theme?.colors?.textSecondary || '#a1a1aa', margin: '0 0 16px', lineHeight: 1.6 }}>{gap.description}</p>
-                        <div style={{
-                          padding: 12,
-                          borderRadius: 8,
-                          background: `${theme?.colors?.background || '#09090b'}80`,
-                          border: `1px solid ${style.border}`,
-                        }}>
-                          <p style={{ fontSize: 10, color: theme?.colors?.primary || '#d4af37', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: 0.5 }}>Recommendation</p>
-                          <p style={{ fontSize: 13, color: theme?.colors?.textPrimary, margin: 0 }}>{gap.recommendation}</p>
+                        <p style={{ fontSize: 13, color: textSecondary, margin: '0 0 16px', lineHeight: 1.6 }}>{gap.description}</p>
+                        <div style={{ padding: 12, borderRadius: 8, background: bgBg + '80', border: '1px solid ' + color + '40' }}>
+                          <p style={{ fontSize: 10, color: primary, margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: 0.5 }}>Recommendation</p>
+                          <p style={{ fontSize: 13, color: textPrimary, margin: 0 }}>{gap.recommendation}</p>
                         </div>
-                      </div>
-                      <div style={{ display: 'flex', gap: 8 }}>
-                        {gap.affectedPlatforms.map((p) => (
-                          <span key={p} style={{
-                            fontSize: 10,
-                            padding: '4px 10px',
-                            borderRadius: 20,
-                            background: `${theme?.colors?.surface || '#18181b'}`,
-                            border: `1px solid ${theme?.colors?.border || '#3f3f46'}`,
-                            color: theme?.colors?.textSecondary || '#a1a1aa',
-                            textTransform: 'uppercase',
-                            fontWeight: 600,
-                          }}>
-                            {p}
-                          </span>
-                        ))}
                       </div>
                     </div>
-                  </motion.div>
+                  </div>
                 );
               })}
             </motion.div>
           )}
 
-          {activeTab === 'settings' && (
-            <motion.div
-              key="settings"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              style={{
-                padding: 24,
-                borderRadius: 16,
-                background: `${theme?.colors?.surface || '#18181b'}60`,
-                backdropFilter: 'blur(20px)',
-                border: `1px solid ${theme?.colors?.border || '#3f3f46'}`,
-              }}
-            >
-              <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 20, color: theme?.colors?.textPrimary }}>Tenant Configuration</h3>
-              
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
-                <div>
-                  <p style={{ fontSize: 11, color: theme?.colors?.textDim || '#71717a', marginBottom: 4, textTransform: 'uppercase' }}>Tenant ID</p>
-                  <p style={{ fontSize: 14, color: theme?.colors?.textPrimary, fontFamily: 'monospace' }}>{tenantConfig?.tenantId}</p>
+          {/* ACCOUNTS */}
+          {activeTab === 'accounts' && (
+            <motion.div key="accounts" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+              <div style={cardStyle}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                  <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0, color: textPrimary }}>Connected Accounts</h3>
+                  <button style={{ padding: '8px 16px', borderRadius: 8, background: primary, color: '#000', border: 'none', fontWeight: 600, fontSize: 12, cursor: 'pointer' }}>+ Add Account</button>
                 </div>
-                <div>
-                  <p style={{ fontSize: 11, color: theme?.colors?.textDim || '#71717a', marginBottom: 4, textTransform: 'uppercase' }}>Slug</p>
-                  <p style={{ fontSize: 14, color: theme?.colors?.textPrimary, fontFamily: 'monospace' }}>{tenantConfig?.tenantSlug}</p>
-                </div>
-                <div>
-                  <p style={{ fontSize: 11, color: theme?.colors?.textDim || '#71717a', marginBottom: 4, textTransform: 'uppercase' }}>Tier</p>
-                  <p style={{ fontSize: 14, color: theme?.colors?.primary || '#d4af37', fontWeight: 600, textTransform: 'capitalize' }}>{tenantConfig?.tier}</p>
-                </div>
-                <div>
-                  <p style={{ fontSize: 11, color: theme?.colors?.textDim || '#71717a', marginBottom: 4, textTransform: 'uppercase' }}>Status</p>
-                  <p style={{ fontSize: 14, color: tenantConfig?.isActive ? '#10b981' : '#f43f5e', fontWeight: 600 }}>{tenantConfig?.isActive ? 'Active' : 'Inactive'}</p>
-                </div>
-              </div>
-
-              <div style={{ marginTop: 24, paddingTop: 24, borderTop: `1px solid ${theme?.colors?.border || '#3f3f46'}` }}>
-                <h4 style={{ fontSize: 14, fontWeight: 600, marginBottom: 16, color: theme?.colors?.textPrimary }}>Feature Flags</h4>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
-                  {Object.entries(tenantConfig?.features || {}).map(([key, value]) => (
-                    <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <div style={{
-                        width: 20,
-                        height: 20,
-                        borderRadius: 6,
-                        background: value ? 'rgba(16, 185, 129, 0.2)' : 'rgba(244, 63, 94, 0.2)',
-                        border: `1px solid ${value ? 'rgba(16, 185, 129, 0.4)' : 'rgba(244, 63, 94, 0.4)'}`,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: 12,
-                      }}>
-                        {value ? '✓' : '✗'}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+                  {PLATFORMS.map((p) => (
+                    <div key={p.platform} style={{ padding: 20, borderRadius: 12, background: bgBg + '60', border: '1px solid ' + border + '40' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                        <div style={{ width: 36, height: 36, borderRadius: 8, background: p.color + '20', border: '1px solid ' + p.color + '40', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>{p.icon}</div>
+                        <div>
+                          <p style={{ fontSize: 13, fontWeight: 600, color: textPrimary, margin: 0 }}>{p.platform}</p>
+                          <p style={{ fontSize: 10, color: textDim, margin: 0 }}>{formatNumber(p.followers)} followers</p>
+                        </div>
+                        <div style={{ marginLeft: 'auto', width: 8, height: 8, borderRadius: '50%', background: '#10b981' }} />
                       </div>
-                      <span style={{ fontSize: 13, color: theme?.colors?.textSecondary || '#a1a1aa', textTransform: 'capitalize' }}>
-                        {key.replace(/([A-Z])/g, ' $1').trim()}
-                      </span>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <div><p style={{ fontSize: 16, fontWeight: 600, color: '#10b981', margin: 0 }}>{p.engagement}%</p><p style={{ fontSize: 9, color: textDim, margin: 0, textTransform: 'uppercase' }}>Engagement</p></div>
+                        <div><p style={{ fontSize: 16, fontWeight: 600, color: textPrimary, margin: 0 }}>Active</p><p style={{ fontSize: 9, color: textDim, margin: 0, textTransform: 'uppercase' }}>Status</p></div>
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
+            </motion.div>
+          )}
 
-              <div style={{ marginTop: 24, paddingTop: 24, borderTop: `1px solid ${theme?.colors?.border || '#3f3f46'}` }}>
-                <h4 style={{ fontSize: 14, fontWeight: 600, marginBottom: 16, color: theme?.colors?.textPrimary }}>Platforms</h4>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  {Object.entries(tenantConfig?.platforms || {}).map(([key, config]) => (
-                    <span key={key} style={{
-                      padding: '6px 12px',
-                      borderRadius: 8,
-                      background: config.enabled ? 'rgba(16, 185, 129, 0.1)' : 'rgba(244, 63, 94, 0.1)',
-                      border: `1px solid ${config.enabled ? 'rgba(16, 185, 129, 0.3)' : 'rgba(244, 63, 94, 0.3)'}`,
-                      color: config.enabled ? '#10b981' : '#f43f5e',
-                      fontSize: 12,
-                      fontWeight: 600,
-                      textTransform: 'capitalize',
-                    }}>
-                      {key} {config.enabled ? '✓' : '✗'}
-                    </span>
+          {/* WEBHOOKS */}
+          {activeTab === 'webhooks' && (
+            <motion.div key="webhooks" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+              <div style={cardStyle}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                  <div>
+                    <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0, color: textPrimary }}>Webhook Manager</h3>
+                    <p style={{ fontSize: 12, color: textDim, margin: '4px 0 0' }}>Event-driven notifications with HMAC signatures</p>
+                  </div>
+                  <button style={{ padding: '8px 16px', borderRadius: 8, background: primary, color: '#000', border: 'none', fontWeight: 600, fontSize: 12, cursor: 'pointer' }}>+ Add Webhook</button>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {WEBHOOKS.map((wh) => (
+                    <div key={wh.url} style={{ padding: 16, borderRadius: 12, background: bgBg + '60', border: '1px solid ' + border + '40' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                          <span style={{ width: 8, height: 8, borderRadius: '50%', background: wh.active ? '#10b981' : '#f43f5e' }} />
+                          <span style={{ fontSize: 13, fontWeight: 500, color: textPrimary, fontFamily: 'monospace' }}>{wh.url}</span>
+                        </div>
+                        <span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 4, background: wh.active ? 'rgba(16,185,129,0.15)' : 'rgba(244,63,94,0.15)', color: wh.active ? '#10b981' : '#f43f5e', fontWeight: 600 }}>{wh.active ? 'ACTIVE' : 'INACTIVE'}</span>
+                      </div>
+                      <div style={{ display: 'flex', gap: 16 }}>
+                        <div><span style={{ fontSize: 10, color: textDim }}>Events:</span> <span style={{ fontSize: 11, color: textSecondary }}>{wh.events.join(', ')}</span></div>
+                        <div><span style={{ fontSize: 10, color: textDim }}>Deliveries:</span> <span style={{ fontSize: 11, color: '#10b981' }}>{wh.deliveries.toLocaleString()}</span></div>
+                        <div><span style={{ fontSize: 10, color: textDim }}>Failures:</span> <span style={{ fontSize: 11, color: wh.failures > 10 ? '#f43f5e' : textSecondary }}>{wh.failures}</span></div>
+                      </div>
+                    </div>
                   ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* AUDIT */}
+          {activeTab === 'audit' && (
+            <motion.div key="audit" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+              <div style={cardStyle}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                  <div>
+                    <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0, color: textPrimary }}>Audit Logs</h3>
+                    <p style={{ fontSize: 12, color: textDim, margin: '4px 0 0' }}>Complete queryable audit trail with export</p>
+                  </div>
+                  <button style={{ padding: '8px 16px', borderRadius: 8, background: bgSurface, border: '1px solid ' + border, color: textPrimary, fontWeight: 500, fontSize: 12, cursor: 'pointer' }}>Export CSV</button>
+                </div>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid ' + border }}>
+                      <th style={{ textAlign: 'left', padding: '10px 8px', color: textDim, fontWeight: 500, textTransform: 'uppercase', fontSize: 10 }}>Action</th>
+                      <th style={{ textAlign: 'left', padding: '10px 8px', color: textDim, fontWeight: 500, textTransform: 'uppercase', fontSize: 10 }}>User</th>
+                      <th style={{ textAlign: 'left', padding: '10px 8px', color: textDim, fontWeight: 500, textTransform: 'uppercase', fontSize: 10 }}>Resource</th>
+                      <th style={{ textAlign: 'left', padding: '10px 8px', color: textDim, fontWeight: 500, textTransform: 'uppercase', fontSize: 10 }}>Details</th>
+                      <th style={{ textAlign: 'right', padding: '10px 8px', color: textDim, fontWeight: 500, textTransform: 'uppercase', fontSize: 10 }}>Time</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {AUDIT_LOGS.map((log) => (
+                      <tr key={log.timestamp} style={{ borderBottom: '1px solid ' + border + '40' }}>
+                        <td style={{ padding: '12px 8px' }}><span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 4, background: 'rgba(139,92,246,0.15)', color: '#8b5cf6', fontWeight: 600 }}>{log.action}</span></td>
+                        <td style={{ padding: '12px 8px', color: textSecondary }}>{log.user}</td>
+                        <td style={{ padding: '12px 8px', color: textPrimary }}>{log.resource}</td>
+                        <td style={{ padding: '12px 8px', color: textDim, maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{log.details}</td>
+                        <td style={{ padding: '12px 8px', textAlign: 'right', color: textDim }}>{log.timestamp}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </motion.div>
+          )}
+
+          {/* SETTINGS */}
+          {activeTab === 'settings' && (
+            <motion.div key="settings" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+              <div style={cardStyle}>
+                <h3 style={{ fontSize: 16, fontWeight: 600, margin: '0 0 24px', color: textPrimary }}>Tenant Configuration</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, marginBottom: 24 }}>
+                  <div><p style={{ fontSize: 11, color: textDim, marginBottom: 4, textTransform: 'uppercase' }}>Tenant ID</p><p style={{ fontSize: 13, color: textPrimary, fontFamily: 'monospace' }}>{SABRINA_TENANT_CONFIG.tenantId}</p></div>
+                  <div><p style={{ fontSize: 11, color: textDim, marginBottom: 4, textTransform: 'uppercase' }}>Slug</p><p style={{ fontSize: 13, color: textPrimary, fontFamily: 'monospace' }}>{SABRINA_TENANT_CONFIG.tenantSlug}</p></div>
+                  <div><p style={{ fontSize: 11, color: textDim, marginBottom: 4, textTransform: 'uppercase' }}>Tier</p><p style={{ fontSize: 13, color: primary, fontWeight: 600, textTransform: 'capitalize' }}>{SABRINA_TENANT_CONFIG.tier}</p></div>
+                  <div><p style={{ fontSize: 11, color: textDim, marginBottom: 4, textTransform: 'uppercase' }}>Status</p><p style={{ fontSize: 13, color: '#10b981', fontWeight: 600 }}>Active</p></div>
+                </div>
+                <div style={{ paddingTop: 24, borderTop: '1px solid ' + border, marginBottom: 24 }}>
+                  <h4 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 16px', color: textPrimary }}>Feature Flags</h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
+                    {Object.entries(SABRINA_TENANT_CONFIG.features).map(([key, value]) => (
+                      <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{ width: 20, height: 20, borderRadius: 6, background: value ? 'rgba(16,185,129,0.2)' : 'rgba(244,63,94,0.2)', border: '1px solid ' + (value ? 'rgba(16,185,129,0.4)' : 'rgba(244,63,94,0.4)'), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: value ? '#10b981' : '#f43f5e' }}>{value ? 'yes' : 'no'}</div>
+                        <span style={{ fontSize: 12, color: textSecondary, textTransform: 'capitalize' }}>{key.replace(/([A-Z])/g, ' $1').trim()}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div style={{ paddingTop: 24, borderTop: '1px solid ' + border }}>
+                  <h4 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 16px', color: textPrimary }}>Platform Configuration</h4>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    {Object.entries(SABRINA_TENANT_CONFIG.platforms).map(([key, config]) => (
+                      <span key={key} style={{ padding: '6px 12px', borderRadius: 8, background: config.enabled ? 'rgba(16,185,129,0.1)' : 'rgba(244,63,94,0.1)', border: '1px solid ' + (config.enabled ? 'rgba(16,185,129,0.3)' : 'rgba(244,63,94,0.3)'), color: config.enabled ? '#10b981' : '#f43f5e', fontSize: 12, fontWeight: 600, textTransform: 'capitalize' }}>{key} {config.enabled ? 'yes' : 'no'}</span>
+                    ))}
+                  </div>
                 </div>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* ML Predictions */}
-        {tenantInfo?.features?.predictiveML && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            style={{
-              marginTop: 24,
-              padding: 24,
-              borderRadius: 16,
-              background: `${theme?.colors?.surface || '#18181b'}60`,
-              backdropFilter: 'blur(20px)',
-              border: `1px solid ${theme?.colors?.border || '#3f3f46'}`,
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-              <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0, color: theme?.colors?.textPrimary }}>Exposure Predictions</h3>
-              <div style={{
-                padding: '4px 10px',
-                borderRadius: 20,
-                background: 'rgba(139, 92, 246, 0.15)',
-                border: '1px solid rgba(139, 92, 246, 0.3)',
-              }}>
-                <span style={{ fontSize: 10, color: '#8b5cf6', fontWeight: 600, textTransform: 'uppercase' }}>ML-Powered</span>
-              </div>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
-              {PREDICTIONS.map((pred) => (
-                <div
-                  key={pred.metric}
-                  style={{
-                    padding: 16,
-                    borderRadius: 12,
-                    background: `${theme?.colors?.background || '#09090b'}60`,
-                    border: `1px solid ${theme?.colors?.border || '#3f3f46'}40`,
-                  }}
-                >
-                  <p style={{ fontSize: 10, color: theme?.colors?.textDim || '#71717a', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>{pred.metric}</p>
-                  <p style={{ fontSize: 20, fontWeight: 700, color: theme?.colors?.textPrimary, margin: '0 0 4px' }}>{formatNumber(pred.predicted)}</p>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ fontSize: 10, color: theme?.colors?.textDim || '#71717a' }}>from {formatNumber(pred.current)}</span>
-                    <span style={{
-                      fontSize: 9,
-                      padding: '2px 6px',
-                      borderRadius: 4,
-                      background: pred.confidence === 'high' ? 'rgba(16, 185, 129, 0.15)' : pred.confidence === 'medium' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(244, 63, 94, 0.15)',
-                      color: pred.confidence === 'high' ? '#10b981' : pred.confidence === 'medium' ? '#f59e0b' : '#f43f5e',
-                      fontWeight: 600,
-                      textTransform: 'uppercase',
-                    }}>
-                      {pred.confidence}
-                    </span>
-                  </div>
-                  <p style={{ fontSize: 10, color: theme?.colors?.textDim || '#71717a', margin: '8px 0 0' }}>{pred.timeframe}</p>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-        )}
+        {/* System Health */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} style={{ marginTop: 24, padding: 16, borderRadius: 12, background: bgSurface + '99', backdropFilter: 'blur(20px)', border: '1px solid ' + border, display: 'flex', gap: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ fontSize: 11, color: textDim }}>Uptime:</span><span style={{ fontSize: 11, color: '#10b981', fontWeight: 600 }}>{health.uptime}%</span></div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ fontSize: 11, color: textDim }}>Requests:</span><span style={{ fontSize: 11, color: textPrimary }}>{formatNumber(health.requests)}</span></div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ fontSize: 11, color: textDim }}>Cache Hit:</span><span style={{ fontSize: 11, color: textPrimary }}>{health.cacheHit}%</span></div>
+        </motion.div>
       </main>
     </div>
   );
-}
-
-function hexToRgb(hex: string): string {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  if (result) {
-    return `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}`;
-  }
-  return '9, 9, 11';
 }
 
 export default function MultiTenantDashboard() {
