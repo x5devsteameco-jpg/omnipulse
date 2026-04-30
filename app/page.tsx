@@ -1,8 +1,34 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import {
+  LayoutDashboard,
+  BarChart3,
+  Target,
+  AlertTriangle,
+  Users,
+  Webhook,
+  FileText,
+  Settings,
+  Activity,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  Plus,
+  RefreshCw,
+  ChevronDown,
+  Search,
+  Command,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  Zap,
+} from 'lucide-react';
 import { TenantStylesProvider, useTenantTheme } from '../lib/ui/theme-provider';
+import { PlatformIcon, PlatformIconWithBg } from '../lib/ui/platform-icons';
+import { CommandPalette } from '../lib/ui/command-palette';
+import { Skeleton, SkeletonCard, SkeletonTable } from '../lib/ui/skeleton';
 import type { TenantConfig } from '../lib/types/tenant';
 
 const SABRINA_TENANT_CONFIG: TenantConfig = {
@@ -55,12 +81,12 @@ const SABRINA_TENANT_CONFIG: TenantConfig = {
 };
 
 const PLATFORMS = [
-  { platform: 'Instagram', icon: '📸', color: '#E4405F', followers: 2800000, engagement: 5.2 },
-  { platform: 'TikTok', icon: '🎵', color: '#000000', followers: 5200000, engagement: 8.4 },
-  { platform: 'YouTube', icon: '▶️', color: '#FF0000', followers: 2100000, engagement: 4.1 },
-  { platform: 'X (Twitter)', icon: '𝕏', color: '#1DA1F2', followers: 1900000, engagement: 2.3 },
-  { platform: 'Spotify', icon: '🎧', color: '#1DB954', followers: 8000000, engagement: 0 },
-  { platform: 'Facebook', icon: '👥', color: '#1877F2', followers: 1100000, engagement: 1.8 },
+  { platform: 'Instagram', color: '#E4405F', followers: 2800000, engagement: 5.2 },
+  { platform: 'TikTok', color: '#000000', followers: 5200000, engagement: 8.4 },
+  { platform: 'YouTube', color: '#FF0000', followers: 2100000, engagement: 4.1 },
+  { platform: 'X (Twitter)', color: '#1DA1F2', followers: 1900000, engagement: 2.3 },
+  { platform: 'Spotify', color: '#1DB954', followers: 8000000, engagement: 0 },
+  { platform: 'Facebook', color: '#1877F2', followers: 1100000, engagement: 1.8 },
 ];
 
 const CAMPAIGNS = [
@@ -78,12 +104,12 @@ const GAPS = [
 ];
 
 const KPIs = [
-  { name: 'Total Followers', value: '61.1M', change: '+8.2%', color: '#d4af37' },
-  { name: 'Avg Engagement', value: '4.36%', change: '+0.6pp', color: '#22c55e' },
-  { name: 'Campaign ROAS', value: '14.2x', change: '+2.4x', color: '#22c55e' },
-  { name: 'Crisis Alerts', value: '1', change: 'Active', color: '#f43f5e' },
-  { name: 'Sentiment Score', value: '78%', change: '+6%', color: '#22c55e' },
-  { name: 'Monthly Revenue', value: '$485K', change: '+15.5%', color: '#d4af37' },
+  { name: 'Total Followers', value: '61.1M', change: '+8.2%', trend: 'up', color: '#d4af37' },
+  { name: 'Avg Engagement', value: '4.36%', change: '+0.6pp', trend: 'up', color: '#22c55e' },
+  { name: 'Campaign ROAS', value: '14.2x', change: '+2.4x', trend: 'up', color: '#22c55e' },
+  { name: 'Crisis Alerts', value: '1', change: 'Active', trend: 'alert', color: '#f43f5e' },
+  { name: 'Sentiment Score', value: '78%', change: '+6%', trend: 'up', color: '#22c55e' },
+  { name: 'Monthly Revenue', value: '$485K', change: '+15.5%', trend: 'up', color: '#d4af37' },
 ];
 
 const WEBHOOKS = [
@@ -100,6 +126,286 @@ const AUDIT_LOGS = [
   { action: 'LOGIN', user: 'manager@omnipulse.com', resource: 'Session', timestamp: '3 hours ago', details: 'Successful login' },
 ];
 
+const TABS = [
+  { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+  { id: 'campaigns', label: 'Campaigns', icon: BarChart3 },
+  { id: 'kpis', label: 'KPIs', icon: Target },
+  { id: 'gaps', label: 'Gaps', icon: AlertTriangle },
+  { id: 'accounts', label: 'Accounts', icon: Users },
+  { id: 'webhooks', label: 'Webhooks', icon: Webhook },
+  { id: 'audit', label: 'Audit', icon: FileText },
+  { id: 'settings', label: 'Settings', icon: Settings },
+];
+
+const TrendIcon = memo(({ trend }: { trend: string }) => {
+  if (trend === 'up') return <TrendingUp size={14} style={{ color: 'var(--accent-emerald)' }} />;
+  if (trend === 'down') return <TrendingDown size={14} style={{ color: 'var(--accent-rose)' }} />;
+  if (trend === 'alert') return <AlertTriangle size={14} style={{ color: 'var(--accent-rose)' }} />;
+  return <Minus size={14} style={{ color: 'var(--text-dim)' }} />;
+});
+TrendIcon.displayName = 'TrendIcon';
+
+const StatusBadge = memo(({ status }: { status: string }) => {
+  const isActive = status === 'active';
+  return (
+    <span
+      style={{
+        fontSize: 10,
+        padding: '3px 8px',
+        borderRadius: 4,
+        fontWeight: 600,
+        textTransform: 'uppercase',
+        background: isActive ? 'rgba(16,185,129,0.15)' : 'rgba(59,130,246,0.15)',
+        color: isActive ? '#10b981' : '#3b82f6',
+      }}
+    >
+      {status}
+    </span>
+  );
+});
+StatusBadge.displayName = 'StatusBadge';
+
+const SeverityBadge = memo(({ severity }: { severity: string }) => {
+  const colors: Record<string, string> = { critical: '#f43f5e', high: '#f59e0b', medium: '#d4af37', low: '#3b82f6' };
+  const color = colors[severity] || colors.medium;
+  return (
+    <span
+      style={{
+        fontSize: 9,
+        padding: '3px 10px',
+        borderRadius: 20,
+        background: color + '20',
+        color: color,
+        textTransform: 'uppercase',
+        fontWeight: 700,
+      }}
+    >
+      {severity}
+    </span>
+  );
+});
+SeverityBadge.displayName = 'SeverityBadge';
+
+const ActionBadge = memo(({ action }: { action: string }) => (
+  <span
+    style={{
+      fontSize: 10,
+      padding: '3px 8px',
+      borderRadius: 4,
+      background: 'rgba(139,92,246,0.15)',
+      color: '#8b5cf6',
+      fontWeight: 600,
+    }}
+  >
+    {action}
+  </span>
+));
+ActionBadge.displayName = 'ActionBadge';
+
+const WebhookStatus = memo(({ active }: { active: boolean }) => (
+  <span style={{ width: 8, height: 8, borderRadius: '50%', background: active ? '#10b981' : '#f43f5e' }} />
+));
+WebhookStatus.displayName = 'WebhookStatus';
+
+const AccountStatus = memo(({ connected }: { connected: boolean }) => (
+  <div style={{ width: 8, height: 8, borderRadius: '50%', background: connected ? '#10b981' : '#f43f5e' }} />
+));
+AccountStatus.displayName = 'AccountStatus';
+
+const PlatformRow = memo(({ platform }: { platform: typeof PLATFORMS[0] }) => {
+  const { theme } = useTenantTheme();
+  const bgBg = theme?.colors?.background || '#09090b';
+  const border = theme?.colors?.border || '#3f3f46';
+  const textPrimary = theme?.colors?.textPrimary || '#fafafa';
+  const textDim = theme?.colors?.textDim || '#71717a';
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+      <PlatformIconWithBg platform={platform.platform} size={40} iconSize={16} />
+      <div style={{ flex: 1 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+          <span style={{ fontSize: 13, fontWeight: 600, color: textPrimary }}>{platform.platform}</span>
+        </div>
+        <div style={{ height: 4, background: border + '40', borderRadius: 2, overflow: 'hidden' }}>
+          <div style={{ height: '100%', width: (platform.engagement / 10) * 100 + '%', background: platform.color, borderRadius: 2 }} />
+        </div>
+      </div>
+      <div style={{ textAlign: 'right' }}>
+        <p style={{ fontSize: 13, fontWeight: 600, color: textPrimary, margin: 0 }}>{formatNumber(platform.followers)}</p>
+        <p style={{ fontSize: 10, color: textDim, margin: 0 }}>{platform.engagement}%</p>
+      </div>
+    </div>
+  );
+});
+PlatformRow.displayName = 'PlatformRow';
+
+const KPICard = memo(({ kpi, index }: { kpi: typeof KPIs[0]; index: number }) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.05 }}
+      style={{
+        padding: 24,
+        borderRadius: 16,
+        background: 'var(--bg-surface)',
+        backdropFilter: 'blur(20px)',
+        border: '1px solid var(--border-default)',
+      }}
+    >
+      <span style={{ fontSize: 11, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: 0.5 }}>{kpi.name}</span>
+      <p style={{ fontSize: 28, fontWeight: 700, color: kpi.color, margin: '12px 0 8px' }}>{kpi.value}</p>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <TrendIcon trend={kpi.trend} />
+        <span style={{ fontSize: 11, color: kpi.trend === 'alert' ? '#f43f5e' : '#10b981', fontWeight: 600 }}>{kpi.change}</span>
+      </div>
+    </motion.div>
+  );
+});
+KPICard.displayName = 'KPICard';
+
+const GapCard = memo(({ gap }: { gap: typeof GAPS[0] }) => {
+  const { theme } = useTenantTheme();
+  const bgBg = theme?.colors?.background || '#09090b';
+  const bgSurface = theme?.colors?.surface || '#18181b';
+
+  const colors: Record<string, string> = { critical: '#f43f5e', high: '#f59e0b', medium: '#d4af37', low: '#3b82f6' };
+  const color = colors[gap.severity] || colors.medium;
+
+  return (
+    <div
+      style={{
+        padding: 24,
+        borderRadius: 16,
+        background: color + '15',
+        border: '1px solid ' + color + '40',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+      <div style={{ position: 'absolute', left: 0, top: 0, width: 4, height: '100%', background: color }} />
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, paddingLeft: 12 }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+            <h4 style={{ fontSize: 15, fontWeight: 600, margin: 0, color: 'var(--text-primary)' }}>{gap.title}</h4>
+            <SeverityBadge severity={gap.severity} />
+            <span
+              style={{
+                fontSize: 9,
+                padding: '3px 8px',
+                borderRadius: 4,
+                background: bgSurface,
+                color: 'var(--text-dim)',
+                textTransform: 'uppercase',
+              }}
+            >
+              {gap.type}
+            </span>
+          </div>
+          <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '0 0 16px', lineHeight: 1.6 }}>{gap.description}</p>
+          <div style={{ padding: 12, borderRadius: 8, background: bgBg + '80', border: '1px solid ' + color + '40' }}>
+            <p style={{ fontSize: 10, color: 'var(--gold-primary)', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+              Recommendation
+            </p>
+            <p style={{ fontSize: 13, color: 'var(--text-primary)', margin: 0 }}>{gap.recommendation}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
+GapCard.displayName = 'GapCard';
+
+const AccountCard = memo(({ platform }: { platform: typeof PLATFORMS[0] }) => {
+  const { theme } = useTenantTheme();
+  const bgBg = theme?.colors?.background || '#09090b';
+
+  return (
+    <div
+      style={{
+        padding: 20,
+        borderRadius: 12,
+        background: bgBg + '60',
+        border: '1px solid var(--border-default)',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+        <PlatformIconWithBg platform={platform.platform} size={36} iconSize={14} />
+        <div>
+          <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>{platform.platform}</p>
+          <p style={{ fontSize: 10, color: 'var(--text-dim)', margin: 0 }}>{formatNumber(platform.followers)} followers</p>
+        </div>
+        <AccountStatus connected={true} />
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <div>
+          <p style={{ fontSize: 16, fontWeight: 600, color: '#10b981', margin: 0 }}>{platform.engagement}%</p>
+          <p style={{ fontSize: 9, color: 'var(--text-dim)', margin: 0, textTransform: 'uppercase' }}>Engagement</p>
+        </div>
+        <div>
+          <p style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Active</p>
+          <p style={{ fontSize: 9, color: 'var(--text-dim)', margin: 0, textTransform: 'uppercase' }}>Status</p>
+        </div>
+      </div>
+    </div>
+  );
+});
+AccountCard.displayName = 'AccountCard';
+
+const WebhookCard = memo(({ webhook }: { webhook: typeof WEBHOOKS[0] }) => {
+  const { theme } = useTenantTheme();
+  const bgBg = theme?.colors?.background || '#09090b';
+
+  return (
+    <div
+      style={{
+        padding: 16,
+        borderRadius: 12,
+        background: bgBg + '60',
+        border: '1px solid var(--border-default)',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <WebhookStatus active={webhook.active} />
+          <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)', fontFamily: 'monospace' }}>
+            {webhook.url}
+          </span>
+        </div>
+        <span
+          style={{
+            fontSize: 10,
+            padding: '3px 8px',
+            borderRadius: 4,
+            background: webhook.active ? 'rgba(16,185,129,0.15)' : 'rgba(244,63,94,0.15)',
+            color: webhook.active ? '#10b981' : '#f43f5e',
+            fontWeight: 600,
+          }}
+        >
+          {webhook.active ? 'ACTIVE' : 'INACTIVE'}
+        </span>
+      </div>
+      <div style={{ display: 'flex', gap: 16 }}>
+        <div>
+          <span style={{ fontSize: 10, color: 'var(--text-dim)' }}>Events:</span>{' '}
+          <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{webhook.events.join(', ')}</span>
+        </div>
+        <div>
+          <span style={{ fontSize: 10, color: 'var(--text-dim)' }}>Deliveries:</span>{' '}
+          <span style={{ fontSize: 11, color: '#10b981' }}>{webhook.deliveries.toLocaleString()}</span>
+        </div>
+        <div>
+          <span style={{ fontSize: 10, color: 'var(--text-dim)' }}>Failures:</span>{' '}
+          <span style={{ fontSize: 11, color: webhook.failures > 10 ? '#f43f5e' : 'var(--text-secondary)' }}>
+            {webhook.failures}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+});
+WebhookCard.displayName = 'WebhookCard';
+
 function formatNumber(num: number): string {
   if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
   if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
@@ -109,21 +415,10 @@ function formatNumber(num: number): string {
 function DashboardContent() {
   const { theme } = useTenantTheme();
   const [activeTab, setActiveTab] = useState('overview');
+  const [isLoading, setIsLoading] = useState(true);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [health] = useState({ status: 'healthy', uptime: 99.97, requests: 894234, cacheHit: 94.2 });
   const [rateLimit] = useState({ limit: 1000, remaining: 847 });
-
-  const totalFollowers = PLATFORMS.reduce((sum, p) => sum + p.followers, 0);
-
-  const tabs = [
-    { id: 'overview', label: 'Overview' },
-    { id: 'campaigns', label: 'Campaigns' },
-    { id: 'kpis', label: 'KPIs' },
-    { id: 'gaps', label: 'Gaps' },
-    { id: 'accounts', label: 'Accounts' },
-    { id: 'webhooks', label: 'Webhooks' },
-    { id: 'audit', label: 'Audit' },
-    { id: 'settings', label: 'Settings' },
-  ];
 
   const bgSurface = theme?.colors?.surface || '#18181b';
   const bgBg = theme?.colors?.background || '#09090b';
@@ -134,35 +429,136 @@ function DashboardContent() {
   const primary = theme?.colors?.primary || '#d4af37';
   const accent = theme?.colors?.accent || '#22c55e';
 
-  const cardStyle = {
-    padding: 24,
-    borderRadius: 16,
-    background: bgSurface + '99',
-    backdropFilter: 'blur(20px)',
-    border: '1px solid ' + border,
-  };
+  const cardStyle = useMemo(
+    () => ({
+      padding: 24,
+      borderRadius: 16,
+      background: bgSurface + '99',
+      backdropFilter: 'blur(20px)',
+      border: '1px solid ' + border,
+    }),
+    [bgSurface, border]
+  );
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 800);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsCommandPaletteOpen(true);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const handleNavigate = useCallback((tabId: string) => {
+    setActiveTab(tabId);
+  }, []);
+
+  const totalFollowers = useMemo(
+    () => PLATFORMS.reduce((sum, p) => sum + p.followers, 0),
+    []
+  );
 
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, ' + bgBg + ' 0%, ' + bgSurface + ' 50%, ' + bgBg + ' 100%)', color: textPrimary, fontFamily: theme?.fontFamily || 'Inter, sans-serif' }}>
+    <div
+      style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, ' + bgBg + ' 0%, ' + bgSurface + ' 50%, ' + bgBg + ' 100%)',
+        color: textPrimary,
+        fontFamily: theme?.fontFamily || 'Inter, sans-serif',
+      }}
+    >
       <style>{`* { box-sizing: border-box; margin: 0; padding: 0 }`}</style>
 
-      {/* Header */}
-      <header style={{ borderBottom: '1px solid ' + border, padding: '16px 32px', background: bgBg + 'e6', backdropFilter: 'blur(20px)', position: 'sticky', top: 0, zIndex: 100 }}>
+      <header
+        style={{
+          borderBottom: '1px solid ' + border,
+          padding: '16px 32px',
+          background: bgBg + 'e6',
+          backdropFilter: 'blur(20px)',
+          position: 'sticky',
+          top: 0,
+          zIndex: 100,
+        }}
+      >
         <div style={{ maxWidth: 1600, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <div style={{ width: 40, height: 40, borderRadius: 10, background: 'linear-gradient(135deg, ' + primary + ', ' + accent + ')', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 18, color: '#000' }}>O</div>
+            <div
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 10,
+                background: 'linear-gradient(135deg, ' + primary + ', ' + accent + ')',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 700,
+                fontSize: 18,
+                color: '#000',
+              }}
+            >
+              O
+            </div>
             <div>
               <h1 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: textPrimary }}>{SABRINA_TENANT_CONFIG.brandName}</h1>
-              <p style={{ fontSize: 10, color: textDim, margin: 0, textTransform: 'uppercase', letterSpacing: 1 }}>Enterprise Multi-Tenant</p>
+              <p style={{ fontSize: 10, color: textDim, margin: 0, textTransform: 'uppercase', letterSpacing: 1 }}>
+                Enterprise Multi-Tenant
+              </p>
             </div>
           </div>
+
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <div style={{ padding: '6px 14px', borderRadius: 8, background: bgSurface, border: '1px solid ' + border }}>
+            <button
+              onClick={() => setIsCommandPaletteOpen(true)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '8px 12px',
+                borderRadius: 8,
+                background: bgSurface,
+                border: '1px solid ' + border,
+                cursor: 'pointer',
+                color: textDim,
+                fontSize: 12,
+              }}
+            >
+              <Search size={14} />
+              <span>Search...</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Command size={12} />
+                <span>K</span>
+              </div>
+            </button>
+
+            <div
+              style={{
+                padding: '6px 14px',
+                borderRadius: 8,
+                background: bgSurface,
+                border: '1px solid ' + border,
+              }}
+            >
               <span style={{ fontSize: 11, color: textDim }}>Rate: </span>
               <span style={{ fontSize: 11, color: primary, fontWeight: 600 }}>{rateLimit.remaining}/{rateLimit.limit}</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 8px #10b981' }} />
+              <div
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: '50%',
+                  background: '#10b981',
+                  boxShadow: '0 0 8px #10b981',
+                  animation: 'pulse-glow 2s ease-in-out infinite',
+                }}
+              />
               <span style={{ fontSize: 12, color: textDim }}>{health.status}</span>
             </div>
           </div>
@@ -170,68 +566,172 @@ function DashboardContent() {
       </header>
 
       <main style={{ maxWidth: 1600, margin: '0 auto', padding: 32 }}>
-        {/* Tenant Badge */}
-        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 16px', borderRadius: 12, background: primary + '15', border: '1px solid ' + primary + '30', marginBottom: 24 }}>
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '8px 16px',
+            borderRadius: 12,
+            background: primary + '15',
+            border: '1px solid ' + primary + '30',
+            marginBottom: 24,
+          }}
+        >
           <span style={{ fontSize: 10, color: textDim, textTransform: 'uppercase' }}>Tenant:</span>
           <span style={{ fontSize: 12, color: primary, fontWeight: 600 }}>sabrina-carpenter</span>
-          <span style={{ fontSize: 10, color: '#10b981', background: 'rgba(16,185,129,0.15)', padding: '2px 8px', borderRadius: 4 }}>Active</span>
+          <span style={{ fontSize: 10, color: '#10b981', background: 'rgba(16,185,129,0.15)', padding: '2px 8px', borderRadius: 4 }}>
+            Active
+          </span>
         </motion.div>
 
-        {/* Talent Header */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ ...cardStyle, marginBottom: 32, position: 'relative', overflow: 'hidden' }}>
-          <div style={{ position: 'absolute', top: 0, right: 0, width: 400, height: 400, background: 'radial-gradient(circle at center, ' + primary + '08 0%, transparent 70%)', pointerEvents: 'none' }} />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{ ...cardStyle, marginBottom: 32, position: 'relative', overflow: 'hidden' }}
+        >
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              right: 0,
+              width: 400,
+              height: 400,
+              background: 'radial-gradient(circle at center, ' + primary + '08 0%, transparent 70%)',
+              pointerEvents: 'none',
+            }}
+          />
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 24, position: 'relative' }}>
-            <div style={{ width: 100, height: 100, borderRadius: 20, background: 'linear-gradient(135deg, ' + primary + ', ' + accent + ')', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 36, fontWeight: 700, boxShadow: '0 0 40px ' + primary + '40', flexShrink: 0 }}>SC</div>
+            <div
+              style={{
+                width: 100,
+                height: 100,
+                borderRadius: 20,
+                background: 'linear-gradient(135deg, ' + primary + ', ' + accent + ')',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 36,
+                fontWeight: 700,
+                boxShadow: '0 0 40px ' + primary + '40',
+                flexShrink: 0,
+              }}
+            >
+              SC
+            </div>
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
                 <h2 style={{ fontSize: 28, fontWeight: 700, margin: 0, color: textPrimary }}>Sabrina Carpenter</h2>
-                <span style={{ fontSize: 9, padding: '4px 10px', borderRadius: 20, background: primary + '20', border: '1px solid ' + primary + '40', color: primary, textTransform: 'uppercase', fontWeight: 700, letterSpacing: 0.5 }}>Grammy Winner</span>
+                <span
+                  style={{
+                    fontSize: 9,
+                    padding: '4px 10px',
+                    borderRadius: 20,
+                    background: primary + '20',
+                    border: '1px solid ' + primary + '40',
+                    color: primary,
+                    textTransform: 'uppercase',
+                    fontWeight: 700,
+                    letterSpacing: 0.5,
+                  }}
+                >
+                  Grammy Winner
+                </span>
               </div>
               <p style={{ fontSize: 14, color: textSecondary, margin: '0 0 16px' }}>Island Records (Universal) Age 26 World Tour 2025-2026</p>
               <div style={{ display: 'flex', gap: 24 }}>
-                <div><p style={{ fontSize: 20, fontWeight: 700, color: primary, margin: 0 }}>2</p><p style={{ fontSize: 10, color: textDim, margin: 0, textTransform: 'uppercase' }}>Grammy Wins</p></div>
-                <div><p style={{ fontSize: 20, fontWeight: 700, color: primary, margin: 0 }}>2</p><p style={{ fontSize: 10, color: textDim, margin: 0, textTransform: 'uppercase' }}>Billboard #1</p></div>
-                <div><p style={{ fontSize: 20, fontWeight: 700, color: primary, margin: 0 }}>61.1M</p><p style={{ fontSize: 10, color: textDim, margin: 0, textTransform: 'uppercase' }}>Combined Reach</p></div>
-                <div><p style={{ fontSize: 20, fontWeight: 700, color: primary, margin: 0 }}>7</p><p style={{ fontSize: 10, color: textDim, margin: 0, textTransform: 'uppercase' }}>Studio Albums</p></div>
+                <div>
+                  <p style={{ fontSize: 20, fontWeight: 700, color: primary, margin: 0 }}>2</p>
+                  <p style={{ fontSize: 10, color: textDim, margin: 0, textTransform: 'uppercase' }}>Grammy Wins</p>
+                </div>
+                <div>
+                  <p style={{ fontSize: 20, fontWeight: 700, color: primary, margin: 0 }}>2</p>
+                  <p style={{ fontSize: 10, color: textDim, margin: 0, textTransform: 'uppercase' }}>Billboard #1</p>
+                </div>
+                <div>
+                  <p style={{ fontSize: 20, fontWeight: 700, color: primary, margin: 0 }}>61.1M</p>
+                  <p style={{ fontSize: 10, color: textDim, margin: 0, textTransform: 'uppercase' }}>Combined Reach</p>
+                </div>
+                <div>
+                  <p style={{ fontSize: 20, fontWeight: 700, color: primary, margin: 0 }}>7</p>
+                  <p style={{ fontSize: 10, color: textDim, margin: 0, textTransform: 'uppercase' }}>Studio Albums</p>
+                </div>
               </div>
             </div>
           </div>
         </motion.div>
 
-        {/* Tabs */}
-        <div style={{ display: 'flex', gap: 4, marginBottom: 24, overflowX: 'auto', paddingBottom: 8 }}>
-          {tabs.map((tab) => (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{ padding: '10px 18px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 500, whiteSpace: 'nowrap', background: activeTab === tab.id ? primary + '20' : bgSurface, color: activeTab === tab.id ? primary : textSecondary, transition: 'all 0.2s' }}>
-              {tab.label}
-            </button>
-          ))}
+        <div
+          style={{
+            display: 'flex',
+            gap: 4,
+            marginBottom: 24,
+            overflowX: 'auto',
+            paddingBottom: 8,
+          }}
+        >
+          {TABS.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  padding: '10px 18px',
+                  borderRadius: 8,
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: 12,
+                  fontWeight: 500,
+                  whiteSpace: 'nowrap',
+                  background: isActive ? primary + '20' : bgSurface,
+                  color: isActive ? primary : textSecondary,
+                  transition: 'all 0.2s',
+                }}
+              >
+                <Icon size={14} />
+                {tab.label}
+              </button>
+            );
+          })}
         </div>
 
         <AnimatePresence mode="wait">
-          {/* OVERVIEW */}
           {activeTab === 'overview' && (
-            <motion.div key="overview" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 24 }}>
+            <motion.div
+              key="overview"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 24 }}
+            >
               <div style={cardStyle}>
                 <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 20, color: textPrimary }}>Platform Breakdown</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  {PLATFORMS.map((p) => (
-                    <div key={p.platform} style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                      <div style={{ width: 40, height: 40, borderRadius: 10, background: p.color + '20', border: '1px solid ' + p.color + '40', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>{p.icon}</div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                          <span style={{ fontSize: 13, fontWeight: 600, color: textPrimary }}>{p.platform}</span>
+                {isLoading ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                    {[1, 2, 3, 4, 5, 6].map((i) => (
+                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                        <Skeleton variant="rectangular" width={40} height={40} />
+                        <div style={{ flex: 1 }}>
+                          <Skeleton width="60%" height={12} />
                         </div>
-                        <div style={{ height: 4, background: border + '40', borderRadius: 2, overflow: 'hidden' }}>
-                          <div style={{ height: '100%', width: (p.engagement / 10) * 100 + '%', background: p.color, borderRadius: 2 }} />
-                        </div>
+                        <Skeleton width={60} height={20} />
                       </div>
-                      <div style={{ textAlign: 'right' }}>
-                        <p style={{ fontSize: 13, fontWeight: 600, color: textPrimary, margin: 0 }}>{formatNumber(p.followers)}</p>
-                        <p style={{ fontSize: 10, color: textDim, margin: 0 }}>{p.engagement}%</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                    {PLATFORMS.map((p) => (
+                      <PlatformRow key={p.platform} platform={p} />
+                    ))}
+                  </div>
+                )}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
                 <div style={cardStyle}>
@@ -240,7 +740,10 @@ function DashboardContent() {
                     {KPIs.slice(0, 4).map((kpi) => (
                       <div key={kpi.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <span style={{ fontSize: 12, color: textSecondary }}>{kpi.name}</span>
-                        <span style={{ fontSize: 14, fontWeight: 600, color: kpi.color }}>{kpi.value}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <TrendIcon trend={kpi.trend} />
+                          <span style={{ fontSize: 14, fontWeight: 600, color: kpi.color }}>{kpi.value}</span>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -249,119 +752,148 @@ function DashboardContent() {
             </motion.div>
           )}
 
-          {/* CAMPAIGNS */}
           {activeTab === 'campaigns' && (
             <motion.div key="campaigns" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
               <div style={cardStyle}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
                   <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0, color: textPrimary }}>Campaign ROI Tracking</h3>
-                  <button style={{ padding: '8px 16px', borderRadius: 8, background: primary, color: '#000', border: 'none', fontWeight: 600, fontSize: 12, cursor: 'pointer' }}>+ New Campaign</button>
+                  <button
+                    style={{
+                      padding: '8px 16px',
+                      borderRadius: 8,
+                      background: primary,
+                      color: '#000',
+                      border: 'none',
+                      fontWeight: 600,
+                      fontSize: 12,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                    }}
+                  >
+                    <Plus size={14} />
+                    New Campaign
+                  </button>
                 </div>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
-                  <thead>
-                    <tr style={{ borderBottom: '1px solid ' + border }}>
-                      <th style={{ textAlign: 'left', padding: '12px 8px', color: textDim, fontWeight: 500, textTransform: 'uppercase', fontSize: 10 }}>Campaign</th>
-                      <th style={{ textAlign: 'left', padding: '12px 8px', color: textDim, fontWeight: 500, textTransform: 'uppercase', fontSize: 10 }}>Status</th>
-                      <th style={{ textAlign: 'right', padding: '12px 8px', color: textDim, fontWeight: 500, textTransform: 'uppercase', fontSize: 10 }}>Impressions</th>
-                      <th style={{ textAlign: 'right', padding: '12px 8px', color: textDim, fontWeight: 500, textTransform: 'uppercase', fontSize: 10 }}>CTR</th>
-                      <th style={{ textAlign: 'right', padding: '12px 8px', color: textDim, fontWeight: 500, textTransform: 'uppercase', fontSize: 10 }}>CPM</th>
-                      <th style={{ textAlign: 'right', padding: '12px 8px', color: textDim, fontWeight: 500, textTransform: 'uppercase', fontSize: 10 }}>CPA</th>
-                      <th style={{ textAlign: 'right', padding: '12px 8px', color: textDim, fontWeight: 500, textTransform: 'uppercase', fontSize: 10 }}>ROAS</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {CAMPAIGNS.map((c) => (
-                      <tr key={c.name} style={{ borderBottom: '1px solid ' + border + '40' }}>
-                        <td style={{ padding: '14px 8px' }}><div style={{ fontWeight: 500, color: textPrimary }}>{c.name}</div><div style={{ fontSize: 10, color: textDim }}>{c.platform}</div></td>
-                        <td style={{ padding: '14px 8px' }}><span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 4, fontWeight: 600, textTransform: 'uppercase', background: c.status === 'active' ? 'rgba(16,185,129,0.15)' : 'rgba(59,130,246,0.15)', color: c.status === 'active' ? '#10b981' : '#3b82f6' }}>{c.status}</span></td>
-                        <td style={{ padding: '14px 8px', textAlign: 'right', color: textPrimary }}>{formatNumber(c.impressions)}</td>
-                        <td style={{ padding: '14px 8px', textAlign: 'right', color: textPrimary }}>{c.ctr.toFixed(2)}%</td>
-                        <td style={{ padding: '14px 8px', textAlign: 'right', color: textPrimary }}>${c.cpm.toFixed(2)}</td>
-                        <td style={{ padding: '14px 8px', textAlign: 'right', color: textPrimary }}>${c.cpa.toFixed(2)}</td>
-                        <td style={{ padding: '14px 8px', textAlign: 'right', color: '#10b981', fontWeight: 600 }}>{c.roas.toFixed(1)}x</td>
+                {isLoading ? (
+                  <SkeletonTable rows={4} columns={7} />
+                ) : (
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid ' + border }}>
+                        <th style={{ textAlign: 'left', padding: '12px 8px', color: textDim, fontWeight: 500, textTransform: 'uppercase', fontSize: 10 }}>Campaign</th>
+                        <th style={{ textAlign: 'left', padding: '12px 8px', color: textDim, fontWeight: 500, textTransform: 'uppercase', fontSize: 10 }}>Status</th>
+                        <th style={{ textAlign: 'right', padding: '12px 8px', color: textDim, fontWeight: 500, textTransform: 'uppercase', fontSize: 10 }}>Impressions</th>
+                        <th style={{ textAlign: 'right', padding: '12px 8px', color: textDim, fontWeight: 500, textTransform: 'uppercase', fontSize: 10 }}>CTR</th>
+                        <th style={{ textAlign: 'right', padding: '12px 8px', color: textDim, fontWeight: 500, textTransform: 'uppercase', fontSize: 10 }}>CPM</th>
+                        <th style={{ textAlign: 'right', padding: '12px 8px', color: textDim, fontWeight: 500, textTransform: 'uppercase', fontSize: 10 }}>CPA</th>
+                        <th style={{ textAlign: 'right', padding: '12px 8px', color: textDim, fontWeight: 500, textTransform: 'uppercase', fontSize: 10 }}>ROAS</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {CAMPAIGNS.map((c) => (
+                        <tr key={c.name} style={{ borderBottom: '1px solid ' + border + '40' }}>
+                          <td style={{ padding: '14px 8px' }}>
+                            <div style={{ fontWeight: 500, color: textPrimary }}>{c.name}</div>
+                            <div style={{ fontSize: 10, color: textDim }}>{c.platform}</div>
+                          </td>
+                          <td style={{ padding: '14px 8px' }}><StatusBadge status={c.status} /></td>
+                          <td style={{ padding: '14px 8px', textAlign: 'right', color: textPrimary }}>{formatNumber(c.impressions)}</td>
+                          <td style={{ padding: '14px 8px', textAlign: 'right', color: textPrimary }}>{c.ctr.toFixed(2)}%</td>
+                          <td style={{ padding: '14px 8px', textAlign: 'right', color: textPrimary }}>${c.cpm.toFixed(2)}</td>
+                          <td style={{ padding: '14px 8px', textAlign: 'right', color: textPrimary }}>${c.cpa.toFixed(2)}</td>
+                          <td style={{ padding: '14px 8px', textAlign: 'right', color: '#10b981', fontWeight: 600 }}>{c.roas.toFixed(1)}x</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
               </div>
             </motion.div>
           )}
 
-          {/* KPIs */}
           {activeTab === 'kpis' && (
             <motion.div key="kpis" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
-                {KPIs.map((kpi, i) => (
-                  <motion.div key={kpi.name} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} style={cardStyle}>
-                    <span style={{ fontSize: 11, color: textDim, textTransform: 'uppercase', letterSpacing: 0.5 }}>{kpi.name}</span>
-                    <p style={{ fontSize: 28, fontWeight: 700, color: kpi.color, margin: '12px 0 8px' }}>{kpi.value}</p>
-                    <span style={{ fontSize: 11, color: '#10b981', fontWeight: 600 }}>{kpi.change}</span>
-                  </motion.div>
-                ))}
+                {isLoading
+                  ? Array.from({ length: 6 }).map((_, i) => (
+                      <div key={i} style={{ ...cardStyle, padding: 24 }}>
+                        <Skeleton width="50%" height={12} />
+                        <Skeleton width="40%" height={32} style={{ margin: '12px 0 8px' }} />
+                        <Skeleton width="30%" height={12} />
+                      </div>
+                    ))
+                  : KPIs.map((kpi, i) => <KPICard key={kpi.name} kpi={kpi} index={i} />)}
               </div>
             </motion.div>
           )}
 
-          {/* GAPS */}
           {activeTab === 'gaps' && (
             <motion.div key="gaps" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {GAPS.map((gap) => {
-                const colors = { critical: '#f43f5e', high: '#f59e0b', medium: '#d4af37', low: '#3b82f6' };
-                const color = colors[gap.severity as keyof typeof colors] || colors.medium;
-                return (
-                  <div key={gap.id} style={{ padding: 24, borderRadius: 16, background: color + '15', border: '1px solid ' + color + '40', position: 'relative', overflow: 'hidden' }}>
-                    <div style={{ position: 'absolute', left: 0, top: 0, width: 4, height: '100%', background: color }} />
-                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, paddingLeft: 12 }}>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-                          <h4 style={{ fontSize: 15, fontWeight: 600, margin: 0, color: textPrimary }}>{gap.title}</h4>
-                          <span style={{ fontSize: 9, padding: '3px 10px', borderRadius: 20, background: color + '20', color: color, textTransform: 'uppercase', fontWeight: 700 }}>{gap.severity}</span>
-                          <span style={{ fontSize: 9, padding: '3px 8px', borderRadius: 4, background: bgSurface, color: textDim, textTransform: 'uppercase' }}>{gap.type}</span>
-                        </div>
-                        <p style={{ fontSize: 13, color: textSecondary, margin: '0 0 16px', lineHeight: 1.6 }}>{gap.description}</p>
-                        <div style={{ padding: 12, borderRadius: 8, background: bgBg + '80', border: '1px solid ' + color + '40' }}>
-                          <p style={{ fontSize: 10, color: primary, margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: 0.5 }}>Recommendation</p>
-                          <p style={{ fontSize: 13, color: textPrimary, margin: 0 }}>{gap.recommendation}</p>
-                        </div>
+              {isLoading
+                ? Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} style={{ ...cardStyle, padding: 24 }}>
+                      <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+                        <Skeleton width="60%" height={20} />
+                        <Skeleton width={80} height={20} />
                       </div>
+                      <Skeleton width="100%" height={40} />
                     </div>
-                  </div>
-                );
-              })}
+                  ))
+                : GAPS.map((gap) => <GapCard key={gap.id} gap={gap} />)}
             </motion.div>
           )}
 
-          {/* ACCOUNTS */}
           {activeTab === 'accounts' && (
             <motion.div key="accounts" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
               <div style={cardStyle}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
                   <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0, color: textPrimary }}>Connected Accounts</h3>
-                  <button style={{ padding: '8px 16px', borderRadius: 8, background: primary, color: '#000', border: 'none', fontWeight: 600, fontSize: 12, cursor: 'pointer' }}>+ Add Account</button>
+                  <button
+                    style={{
+                      padding: '8px 16px',
+                      borderRadius: 8,
+                      background: primary,
+                      color: '#000',
+                      border: 'none',
+                      fontWeight: 600,
+                      fontSize: 12,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                    }}
+                  >
+                    <Plus size={14} />
+                    Add Account
+                  </button>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-                  {PLATFORMS.map((p) => (
-                    <div key={p.platform} style={{ padding: 20, borderRadius: 12, background: bgBg + '60', border: '1px solid ' + border + '40' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-                        <div style={{ width: 36, height: 36, borderRadius: 8, background: p.color + '20', border: '1px solid ' + p.color + '40', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>{p.icon}</div>
-                        <div>
-                          <p style={{ fontSize: 13, fontWeight: 600, color: textPrimary, margin: 0 }}>{p.platform}</p>
-                          <p style={{ fontSize: 10, color: textDim, margin: 0 }}>{formatNumber(p.followers)} followers</p>
+                  {isLoading
+                    ? Array.from({ length: 6 }).map((_, i) => (
+                        <div key={i} style={{ ...cardStyle, padding: 20 }}>
+                          <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
+                            <Skeleton variant="rectangular" width={36} height={36} />
+                            <div style={{ flex: 1 }}>
+                              <Skeleton width="60%" height={14} />
+                              <Skeleton width="40%" height={10} style={{ marginTop: 4 }} />
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <Skeleton width={50} height={20} />
+                            <Skeleton width={50} height={20} />
+                          </div>
                         </div>
-                        <div style={{ marginLeft: 'auto', width: 8, height: 8, borderRadius: '50%', background: '#10b981' }} />
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <div><p style={{ fontSize: 16, fontWeight: 600, color: '#10b981', margin: 0 }}>{p.engagement}%</p><p style={{ fontSize: 9, color: textDim, margin: 0, textTransform: 'uppercase' }}>Engagement</p></div>
-                        <div><p style={{ fontSize: 16, fontWeight: 600, color: textPrimary, margin: 0 }}>Active</p><p style={{ fontSize: 9, color: textDim, margin: 0, textTransform: 'uppercase' }}>Status</p></div>
-                      </div>
-                    </div>
-                  ))}
+                      ))
+                    : PLATFORMS.map((p) => (
+                        <AccountCard key={p.platform} platform={p} />
+                      ))}
                 </div>
               </div>
             </motion.div>
           )}
 
-          {/* WEBHOOKS */}
           {activeTab === 'webhooks' && (
             <motion.div key="webhooks" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
               <div style={cardStyle}>
@@ -370,31 +902,40 @@ function DashboardContent() {
                     <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0, color: textPrimary }}>Webhook Manager</h3>
                     <p style={{ fontSize: 12, color: textDim, margin: '4px 0 0' }}>Event-driven notifications with HMAC signatures</p>
                   </div>
-                  <button style={{ padding: '8px 16px', borderRadius: 8, background: primary, color: '#000', border: 'none', fontWeight: 600, fontSize: 12, cursor: 'pointer' }}>+ Add Webhook</button>
+                  <button
+                    style={{
+                      padding: '8px 16px',
+                      borderRadius: 8,
+                      background: primary,
+                      color: '#000',
+                      border: 'none',
+                      fontWeight: 600,
+                      fontSize: 12,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                    }}
+                  >
+                    <Plus size={14} />
+                    Add Webhook
+                  </button>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  {WEBHOOKS.map((wh) => (
-                    <div key={wh.url} style={{ padding: 16, borderRadius: 12, background: bgBg + '60', border: '1px solid ' + border + '40' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                          <span style={{ width: 8, height: 8, borderRadius: '50%', background: wh.active ? '#10b981' : '#f43f5e' }} />
-                          <span style={{ fontSize: 13, fontWeight: 500, color: textPrimary, fontFamily: 'monospace' }}>{wh.url}</span>
+                  {isLoading
+                    ? Array.from({ length: 3 }).map((_, i) => (
+                        <div key={i} style={{ ...cardStyle, padding: 16 }}>
+                          <Skeleton width="100%" height={20} />
                         </div>
-                        <span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 4, background: wh.active ? 'rgba(16,185,129,0.15)' : 'rgba(244,63,94,0.15)', color: wh.active ? '#10b981' : '#f43f5e', fontWeight: 600 }}>{wh.active ? 'ACTIVE' : 'INACTIVE'}</span>
-                      </div>
-                      <div style={{ display: 'flex', gap: 16 }}>
-                        <div><span style={{ fontSize: 10, color: textDim }}>Events:</span> <span style={{ fontSize: 11, color: textSecondary }}>{wh.events.join(', ')}</span></div>
-                        <div><span style={{ fontSize: 10, color: textDim }}>Deliveries:</span> <span style={{ fontSize: 11, color: '#10b981' }}>{wh.deliveries.toLocaleString()}</span></div>
-                        <div><span style={{ fontSize: 10, color: textDim }}>Failures:</span> <span style={{ fontSize: 11, color: wh.failures > 10 ? '#f43f5e' : textSecondary }}>{wh.failures}</span></div>
-                      </div>
-                    </div>
-                  ))}
+                      ))
+                    : WEBHOOKS.map((wh) => (
+                        <WebhookCard key={wh.url} webhook={wh} />
+                      ))}
                 </div>
               </div>
             </motion.div>
           )}
 
-          {/* AUDIT */}
           {activeTab === 'audit' && (
             <motion.div key="audit" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
               <div style={cardStyle}>
@@ -403,52 +944,104 @@ function DashboardContent() {
                     <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0, color: textPrimary }}>Audit Logs</h3>
                     <p style={{ fontSize: 12, color: textDim, margin: '4px 0 0' }}>Complete queryable audit trail with export</p>
                   </div>
-                  <button style={{ padding: '8px 16px', borderRadius: 8, background: bgSurface, border: '1px solid ' + border, color: textPrimary, fontWeight: 500, fontSize: 12, cursor: 'pointer' }}>Export CSV</button>
+                  <button
+                    style={{
+                      padding: '8px 16px',
+                      borderRadius: 8,
+                      background: bgSurface,
+                      border: '1px solid ' + border,
+                      color: textPrimary,
+                      fontWeight: 500,
+                      fontSize: 12,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                    }}
+                  >
+                    <FileText size={14} />
+                    Export CSV
+                  </button>
                 </div>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
-                  <thead>
-                    <tr style={{ borderBottom: '1px solid ' + border }}>
-                      <th style={{ textAlign: 'left', padding: '10px 8px', color: textDim, fontWeight: 500, textTransform: 'uppercase', fontSize: 10 }}>Action</th>
-                      <th style={{ textAlign: 'left', padding: '10px 8px', color: textDim, fontWeight: 500, textTransform: 'uppercase', fontSize: 10 }}>User</th>
-                      <th style={{ textAlign: 'left', padding: '10px 8px', color: textDim, fontWeight: 500, textTransform: 'uppercase', fontSize: 10 }}>Resource</th>
-                      <th style={{ textAlign: 'left', padding: '10px 8px', color: textDim, fontWeight: 500, textTransform: 'uppercase', fontSize: 10 }}>Details</th>
-                      <th style={{ textAlign: 'right', padding: '10px 8px', color: textDim, fontWeight: 500, textTransform: 'uppercase', fontSize: 10 }}>Time</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {AUDIT_LOGS.map((log) => (
-                      <tr key={log.timestamp} style={{ borderBottom: '1px solid ' + border + '40' }}>
-                        <td style={{ padding: '12px 8px' }}><span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 4, background: 'rgba(139,92,246,0.15)', color: '#8b5cf6', fontWeight: 600 }}>{log.action}</span></td>
-                        <td style={{ padding: '12px 8px', color: textSecondary }}>{log.user}</td>
-                        <td style={{ padding: '12px 8px', color: textPrimary }}>{log.resource}</td>
-                        <td style={{ padding: '12px 8px', color: textDim, maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{log.details}</td>
-                        <td style={{ padding: '12px 8px', textAlign: 'right', color: textDim }}>{log.timestamp}</td>
+                {isLoading ? (
+                  <SkeletonTable rows={5} columns={5} />
+                ) : (
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid ' + border }}>
+                        <th style={{ textAlign: 'left', padding: '10px 8px', color: textDim, fontWeight: 500, textTransform: 'uppercase', fontSize: 10 }}>Action</th>
+                        <th style={{ textAlign: 'left', padding: '10px 8px', color: textDim, fontWeight: 500, textTransform: 'uppercase', fontSize: 10 }}>User</th>
+                        <th style={{ textAlign: 'left', padding: '10px 8px', color: textDim, fontWeight: 500, textTransform: 'uppercase', fontSize: 10 }}>Resource</th>
+                        <th style={{ textAlign: 'left', padding: '10px 8px', color: textDim, fontWeight: 500, textTransform: 'uppercase', fontSize: 10 }}>Details</th>
+                        <th style={{ textAlign: 'right', padding: '10px 8px', color: textDim, fontWeight: 500, textTransform: 'uppercase', fontSize: 10 }}>Time</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {AUDIT_LOGS.map((log) => (
+                        <tr key={log.timestamp} style={{ borderBottom: '1px solid ' + border + '40' }}>
+                          <td style={{ padding: '12px 8px' }}><ActionBadge action={log.action} /></td>
+                          <td style={{ padding: '12px 8px', color: textSecondary }}>{log.user}</td>
+                          <td style={{ padding: '12px 8px', color: textPrimary }}>{log.resource}</td>
+                          <td style={{ padding: '12px 8px', color: textDim, maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {log.details}
+                          </td>
+                          <td style={{ padding: '12px 8px', textAlign: 'right', color: textDim }}>{log.timestamp}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
               </div>
             </motion.div>
           )}
 
-          {/* SETTINGS */}
           {activeTab === 'settings' && (
             <motion.div key="settings" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
               <div style={cardStyle}>
                 <h3 style={{ fontSize: 16, fontWeight: 600, margin: '0 0 24px', color: textPrimary }}>Tenant Configuration</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, marginBottom: 24 }}>
-                  <div><p style={{ fontSize: 11, color: textDim, marginBottom: 4, textTransform: 'uppercase' }}>Tenant ID</p><p style={{ fontSize: 13, color: textPrimary, fontFamily: 'monospace' }}>{SABRINA_TENANT_CONFIG.tenantId}</p></div>
-                  <div><p style={{ fontSize: 11, color: textDim, marginBottom: 4, textTransform: 'uppercase' }}>Slug</p><p style={{ fontSize: 13, color: textPrimary, fontFamily: 'monospace' }}>{SABRINA_TENANT_CONFIG.tenantSlug}</p></div>
-                  <div><p style={{ fontSize: 11, color: textDim, marginBottom: 4, textTransform: 'uppercase' }}>Tier</p><p style={{ fontSize: 13, color: primary, fontWeight: 600, textTransform: 'capitalize' }}>{SABRINA_TENANT_CONFIG.tier}</p></div>
-                  <div><p style={{ fontSize: 11, color: textDim, marginBottom: 4, textTransform: 'uppercase' }}>Status</p><p style={{ fontSize: 13, color: '#10b981', fontWeight: 600 }}>Active</p></div>
+                  <div>
+                    <p style={{ fontSize: 11, color: textDim, marginBottom: 4, textTransform: 'uppercase' }}>Tenant ID</p>
+                    <p style={{ fontSize: 13, color: textPrimary, fontFamily: 'monospace' }}>{SABRINA_TENANT_CONFIG.tenantId}</p>
+                  </div>
+                  <div>
+                    <p style={{ fontSize: 11, color: textDim, marginBottom: 4, textTransform: 'uppercase' }}>Slug</p>
+                    <p style={{ fontSize: 13, color: textPrimary, fontFamily: 'monospace' }}>{SABRINA_TENANT_CONFIG.tenantSlug}</p>
+                  </div>
+                  <div>
+                    <p style={{ fontSize: 11, color: textDim, marginBottom: 4, textTransform: 'uppercase' }}>Tier</p>
+                    <p style={{ fontSize: 13, color: primary, fontWeight: 600, textTransform: 'capitalize' }}>{SABRINA_TENANT_CONFIG.tier}</p>
+                  </div>
+                  <div>
+                    <p style={{ fontSize: 11, color: textDim, marginBottom: 4, textTransform: 'uppercase' }}>Status</p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <CheckCircle2 size={14} style={{ color: '#10b981' }} />
+                      <span style={{ fontSize: 13, color: '#10b981', fontWeight: 600 }}>Active</span>
+                    </div>
+                  </div>
                 </div>
                 <div style={{ paddingTop: 24, borderTop: '1px solid ' + border, marginBottom: 24 }}>
                   <h4 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 16px', color: textPrimary }}>Feature Flags</h4>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
                     {Object.entries(SABRINA_TENANT_CONFIG.features).map(([key, value]) => (
                       <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <div style={{ width: 20, height: 20, borderRadius: 6, background: value ? 'rgba(16,185,129,0.2)' : 'rgba(244,63,94,0.2)', border: '1px solid ' + (value ? 'rgba(16,185,129,0.4)' : 'rgba(244,63,94,0.4)'), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: value ? '#10b981' : '#f43f5e' }}>{value ? 'yes' : 'no'}</div>
-                        <span style={{ fontSize: 12, color: textSecondary, textTransform: 'capitalize' }}>{key.replace(/([A-Z])/g, ' $1').trim()}</span>
+                        <div
+                          style={{
+                            width: 20,
+                            height: 20,
+                            borderRadius: 6,
+                            background: value ? 'rgba(16,185,129,0.2)' : 'rgba(244,63,94,0.2)',
+                            border: '1px solid ' + (value ? 'rgba(16,185,129,0.4)' : 'rgba(244,63,94,0.4)'),
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          {value ? <CheckCircle2 size={12} style={{ color: '#10b981' }} /> : <XCircle size={12} style={{ color: '#f43f5e' }} />}
+                        </div>
+                        <span style={{ fontSize: 12, color: textSecondary, textTransform: 'capitalize' }}>
+                          {key.replace(/([A-Z])/g, ' $1').trim()}
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -457,7 +1050,25 @@ function DashboardContent() {
                   <h4 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 16px', color: textPrimary }}>Platform Configuration</h4>
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     {Object.entries(SABRINA_TENANT_CONFIG.platforms).map(([key, config]) => (
-                      <span key={key} style={{ padding: '6px 12px', borderRadius: 8, background: config.enabled ? 'rgba(16,185,129,0.1)' : 'rgba(244,63,94,0.1)', border: '1px solid ' + (config.enabled ? 'rgba(16,185,129,0.3)' : 'rgba(244,63,94,0.3)'), color: config.enabled ? '#10b981' : '#f43f5e', fontSize: 12, fontWeight: 600, textTransform: 'capitalize' }}>{key} {config.enabled ? 'yes' : 'no'}</span>
+                      <span
+                        key={key}
+                        style={{
+                          padding: '6px 12px',
+                          borderRadius: 8,
+                          background: config.enabled ? 'rgba(16,185,129,0.1)' : 'rgba(244,63,94,0.1)',
+                          border: '1px solid ' + (config.enabled ? 'rgba(16,185,129,0.3)' : 'rgba(244,63,94,0.3)'),
+                          color: config.enabled ? '#10b981' : '#f43f5e',
+                          fontSize: 12,
+                          fontWeight: 600,
+                          textTransform: 'capitalize',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 6,
+                        }}
+                      >
+                        {config.enabled ? <CheckCircle2 size={12} /> : <XCircle size={12} />}
+                        {key}
+                      </span>
                     ))}
                   </div>
                 </div>
@@ -466,13 +1077,47 @@ function DashboardContent() {
           )}
         </AnimatePresence>
 
-        {/* System Health */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} style={{ marginTop: 24, padding: 16, borderRadius: 12, background: bgSurface + '99', backdropFilter: 'blur(20px)', border: '1px solid ' + border, display: 'flex', gap: 24 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ fontSize: 11, color: textDim }}>Uptime:</span><span style={{ fontSize: 11, color: '#10b981', fontWeight: 600 }}>{health.uptime}%</span></div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ fontSize: 11, color: textDim }}>Requests:</span><span style={{ fontSize: 11, color: textPrimary }}>{formatNumber(health.requests)}</span></div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ fontSize: 11, color: textDim }}>Cache Hit:</span><span style={{ fontSize: 11, color: textPrimary }}>{health.cacheHit}%</span></div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          style={{
+            marginTop: 24,
+            padding: 16,
+            borderRadius: 12,
+            background: bgSurface + '99',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid ' + border,
+            display: 'flex',
+            gap: 24,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Activity size={14} style={{ color: '#10b981' }} />
+            <span style={{ fontSize: 11, color: textDim }}>Uptime:</span>
+            <span style={{ fontSize: 11, color: '#10b981', fontWeight: 600 }}>{health.uptime}%</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Zap size={14} style={{ color: 'var(--gold-primary)' }} />
+            <span style={{ fontSize: 11, color: textDim }}>Requests:</span>
+            <span style={{ fontSize: 11, color: textPrimary }}>{formatNumber(health.requests)}</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Clock size={14} style={{ color: 'var(--accent-cyan)' }} />
+            <span style={{ fontSize: 11, color: textDim }}>Cache Hit:</span>
+            <span style={{ fontSize: 11, color: textPrimary }}>{health.cacheHit}%</span>
+          </div>
+          <div style={{ marginLeft: 'auto' }}>
+            <RefreshCw size={14} style={{ color: textDim }} />
+          </div>
         </motion.div>
       </main>
+
+      <CommandPalette
+        isOpen={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
+        onNavigate={handleNavigate}
+      />
     </div>
   );
 }

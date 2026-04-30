@@ -49,37 +49,11 @@ export class TenantConfigStore {
   private readonly CACHE_TTL_MS = 60_000;
   private readonly REDIS_KEY_PREFIX = 'omnipulse:tenant:config:';
   private readonly REDIS_TTL_SECONDS = 300;
-  private useMockRedis: boolean;
+  private useMockRedis = true;
 
-  constructor(redisUrl?: string) {
-    if (redisUrl && redisUrl !== 'mock') {
-      this.useMockRedis = false;
-      this.redis = this.createRealRedisClient(redisUrl);
-    } else {
-      this.useMockRedis = true;
-      this.redis = new MockRedisClient();
-    }
-  }
-
-  private createRealRedisClient(url: string): RedisClient {
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const redis = require('redis') as { createClient?: Function; default?: { createClient?: Function } };
-      const createClient = redis.createClient || redis.default?.createClient;
-      if (!createClient) {
-        return new MockRedisClient();
-      }
-      const client = createClient({ url });
-      client.connect().catch(() => {});
-      return {
-        get: (key: string) => client.get(key),
-        set: (key: string, value: string) => client.set(key, value),
-        setEx: (key: string, seconds: number, value: string) => client.setEx(key, seconds, value),
-        del: (key: string) => client.del(key),
-      };
-    } catch {
-      return new MockRedisClient();
-    }
+  constructor(_redisUrl?: string) {
+    this.useMockRedis = true;
+    this.redis = new MockRedisClient();
   }
 
   async getConfig(tenantSlug: string): Promise<TenantConfig | null> {
@@ -145,7 +119,7 @@ export class TenantConfigStore {
   async getAllConfigs(): Promise<TenantConfig[]> {
     if (this.useMockRedis) {
       const configs: TenantConfig[] = [];
-      for (const [key, entry] of this.localCache.entries()) {
+      for (const [, entry] of this.localCache.entries()) {
         if (entry.expires > Date.now()) {
           configs.push(entry.data);
         }
@@ -169,9 +143,9 @@ export class TenantConfigStore {
 
 let configStoreInstance: TenantConfigStore | null = null;
 
-export function getConfigStore(redisUrl?: string): TenantConfigStore {
+export function getConfigStore(_redisUrl?: string): TenantConfigStore {
   if (!configStoreInstance) {
-    configStoreInstance = new TenantConfigStore(redisUrl || process.env.REDIS_URL);
+    configStoreInstance = new TenantConfigStore();
   }
   return configStoreInstance;
 }

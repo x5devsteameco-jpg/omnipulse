@@ -8,6 +8,7 @@ interface SkeletonProps {
   width?: string | number;
   height?: string | number;
   animation?: 'shimmer' | 'pulse' | 'none';
+  style?: React.CSSProperties;
 }
 
 export function Skeleton({
@@ -16,6 +17,7 @@ export function Skeleton({
   width,
   height,
   animation = 'shimmer',
+  style,
 }: SkeletonProps) {
   const variantStyles = {
     text: 'rounded-[var(--radius-sm)] h-3',
@@ -34,15 +36,16 @@ export function Skeleton({
     none: 'bg-[var(--bg-surface)]',
   };
 
-  const style: React.CSSProperties = {
+  const combinedStyle: React.CSSProperties = {
     width: width ?? (variant === 'text' ? '100%' : '100%'),
     height: height ?? (variant === 'text' ? '0.75rem' : '100%'),
+    ...style,
   };
 
   return (
     <div
       className={`${variantStyles[variant]} ${animationStyles[animation]} ${className}`}
-      style={style}
+      style={combinedStyle}
     />
   );
 }
