@@ -29,3 +29,6 @@ export { LottiePlayer, AnimatedSVGPath, MorphIcon, LoadingOrbit, SuccessBurst } 
 export { HapticButton, VisualHaptic, HoverHaptic } from './haptic-effects';
 export { SpatialCard, ZLayer, SpatialContainer, ActivityRing, TimeAwareGradient } from './spatial-ui';
 export { ToastProvider, useToast, generateSmartMessage, SmartEmptyState, ContextualGreeting } from './microcopy';
+export { DetailPanel, InlineEdit, CopyButton } from './detail-panel';
+export { AnnouncementBanner } from './announcement-banner';
+export { WorkspaceSwitcher } from './workspace-switcher';
