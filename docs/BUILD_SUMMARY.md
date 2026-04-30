@@ -1,10 +1,24 @@
 # AEG SCORPION ENGINE
 ## Social Media Intelligence Platform — Technical Build Summary
-**Version:** 2.1.0 | **Built:** April 30, 2026 | **Live:** https://aeg-scraper.vercel.app
+**Version:** 2.3.0 | **Built:** April 30, 2026 | **Live:** https://aeg-scraper.vercel.app
 
 ---
 
 ## Changelog
+
+### v2.3.0 — Detail Panel, Inline Edit, Copy, Workspace Switcher (April 30, 2026)
+- **DetailPanel**: Slide-in right panel (420px) with spring animation, backdrop, editable title/subtitle, action buttons
+- **InlineEdit**: Double-click any text to edit inline, Enter saves, Escape cancels, tab-navigable
+- **CopyButton**: Copy-to-clipboard with "Copied!" feedback tooltip, shows on hover
+- **WorkspaceSwitcher**: Header dropdown with workspace list, tier badges (Starter/Pro/Enterprise), active checkmark
+- **AnnouncementBanner**: Dismissible top banner with variants (info/success/warning/new-feature), localStorage persistence
+
+### v2.2.0 — Landing Page, Login Portal, Changelog, Keyboard Shortcuts (April 30, 2026)
+- **/home** — Full landing page: hero with stats, trusted-by logo strip (OpenAI/Vercel/Figma/Ramp/Nvidia/Toyota), 6-feature grid, changelog preview section, CTA, footer with nav
+- **/login** — Professional login: email/password with show/hide, Google SSO button, Passkey placeholder, "Request access" link
+- **/changelog** — Timeline page with 5 entries (v2.1.0 through v1.5.0), category tags, version badges, animated icons
+- **KeyboardShortcuts modal** — Press `?` or `Cmd+/` to open, searchable shortcuts list, 13 shortcuts mapped
+- **Press `?` anywhere** in dashboard opens keyboard shortcuts modal
 
 ### v2.1.0 — Immersive UI Integration (April 30, 2026)
 - **AnimatedBackground**: Canvas particle field (50 particles with twinkle), 4 floating orbs, gradient mesh, grain overlay

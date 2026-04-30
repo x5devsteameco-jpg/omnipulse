@@ -43,6 +43,9 @@ import { CursorGlow, GlowTrail } from '../lib/ui/cursor-effects';
 import { TimeAwareGradient } from '../lib/ui/spatial-ui';
 import { ToastProvider } from '../lib/ui/microcopy';
 import { ThemeEngineProvider, ThemeEnginePanel } from '../lib/ui/theme-engine';
+import { AnnouncementBanner } from '../lib/ui/announcement-banner';
+import { WorkspaceSwitcher } from '../lib/ui/workspace-switcher';
+import { DetailPanel, InlineEdit, CopyButton } from '../lib/ui/detail-panel';
 import KeyboardShortcuts from '../components/KeyboardShortcuts';
 import type { TenantConfig } from '../lib/types/tenant';
 
@@ -282,8 +285,16 @@ function DashboardContent() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showThemePanel, setShowThemePanel] = useState(false);
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
+  const [showDetailPanel, setShowDetailPanel] = useState(false);
   const [health] = useState({ status: 'healthy', uptime: 99.97, requests: 894234, cacheHit: 94.2 });
   const [rateLimit] = useState({ limit: 1000, remaining: 847 });
+  const [selectedGap, setSelectedGap] = useState<(typeof GAPS)[0] | null>(null);
+
+  const WORKSPACES = [
+    { id: 'ws_sabrina', name: 'Sabrina Carpenter', slug: 'sabrina-carpenter', tier: 'enterprise' as const, isActive: true },
+    { id: 'ws_label', name: 'Island Records', slug: 'island-records', tier: 'enterprise' as const, isActive: false },
+  ];
+  const [currentWorkspaceId, setCurrentWorkspaceId] = useState('ws_sabrina');
 
   const bgSurface = theme?.colors?.surface || '#18181b';
   const bgBg = theme?.colors?.background || '#09090b';
@@ -387,6 +398,14 @@ function DashboardContent() {
         >
           <a href="#main-content" className="skip-link">Skip to main content</a>
 
+          <AnnouncementBanner
+            message="v2.3 Now Live — Workspace Switcher, Detail Panel, and 12 Visual Enhancements"
+            variant="new-feature"
+            storageKey="omnipulse-v23-banner"
+            actionLabel="See what's new"
+            onAction={() => {}}
+          />
+
           <header
         role="banner"
         style={{
@@ -438,10 +457,11 @@ function DashboardContent() {
               O
             </div>
             <div>
-              <h1 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: textPrimary }}>{SABRINA_TENANT_CONFIG.brandName}</h1>
-              <p style={{ fontSize: 10, color: textDim, margin: 0, textTransform: 'uppercase', letterSpacing: 1 }}>
-                Enterprise Multi-Tenant
-              </p>
+              <WorkspaceSwitcher
+                workspaces={WORKSPACES}
+                currentWorkspaceId={currentWorkspaceId}
+                onSwitch={(id) => setCurrentWorkspaceId(id)}
+              />
             </div>
           </div>
 
@@ -987,7 +1007,10 @@ function DashboardContent() {
                       const colors: Record<string, string> = { critical: '#f43f5e', high: '#f59e0b', medium: '#d4af37', low: '#3b82f6' };
                       const color = colors[gap.severity] || colors.medium;
                       return (
-                        <div key={gap.id} style={{ padding: 24, borderRadius: 16, background: color + '15', border: '1px solid ' + color + '40', position: 'relative', overflow: 'hidden' }}>
+                        <div key={gap.id} style={{ padding: 24, borderRadius: 16, background: color + '15', border: '1px solid ' + color + '40', position: 'relative', overflow: 'hidden', cursor: 'pointer' }}
+                          onClick={() => { setSelectedGap(gap); setShowDetailPanel(true); }}
+                          onMouseEnter={(e) => (e.currentTarget.style.borderColor = color + '80')}
+                          onMouseLeave={(e) => (e.currentTarget.style.borderColor = color + '40')}>
                           <div style={{ position: 'absolute', left: 0, top: 0, width: 4, height: '100%', background: color }} aria-hidden="true" />
                           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, paddingLeft: 12 }}>
                             <div style={{ flex: 1 }}>
@@ -1266,6 +1289,34 @@ function DashboardContent() {
           isOpen={showKeyboardShortcuts}
           onClose={() => setShowKeyboardShortcuts(false)}
         />
+        <DetailPanel
+          isOpen={showDetailPanel}
+          onClose={() => setShowDetailPanel(false)}
+          title={selectedGap?.title || 'Gap Details'}
+          subtitle={selectedGap?.severity ? `Severity: ${selectedGap.severity} · Type: ${selectedGap.type}` : undefined}
+          width={440}
+          actions={<button onClick={() => setShowDetailPanel(false)} style={{ padding: '6px 14px', borderRadius: 8, background: primary, color: '#000', border: 'none', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Take Action</button>}
+        >
+          {selectedGap && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              <div style={{ padding: 16, borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <p style={{ fontSize: 11, color: '#71717a', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 0.5 }}>Description</p>
+                <p style={{ fontSize: 14, color: '#fafafa', margin: 0, lineHeight: 1.6 }}>{selectedGap.description}</p>
+              </div>
+              <div style={{ padding: 16, borderRadius: 12, background: 'rgba(212,175,55,0.06)', border: '1px solid rgba(212,175,55,0.2)' }}>
+                <p style={{ fontSize: 11, color: '#d4af37', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 0.5 }}>AI Recommendation</p>
+                <p style={{ fontSize: 14, color: '#fafafa', margin: 0, lineHeight: 1.6 }}>{selectedGap.recommendation}</p>
+              </div>
+              <div style={{ padding: 16, borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <p style={{ fontSize: 11, color: '#71717a', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 0.5 }}>Gap ID</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <code style={{ fontSize: 13, color: '#a1a1aa', fontFamily: 'JetBrains Mono, monospace' }}>{selectedGap.id}</code>
+                  <CopyButton value={`gap_${selectedGap.id}`} />
+                </div>
+              </div>
+            </div>
+          )}
+        </DetailPanel>
       </div>
       </ToastProvider>
     </ThemeEngineProvider>
