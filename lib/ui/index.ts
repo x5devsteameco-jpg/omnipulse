@@ -20,3 +20,12 @@ export { LiveIndicator, useRealTimeUpdates, AnimatedNumber, PulseIndicator } fro
 export { ExportModal } from './export-modal';
 export { VirtualTable, SortableHeader } from './virtual-table';
 export { AnimatedSection, StaggeredList, MorphingShape, ParallaxLayer, CountUpNumber, RippleEffect, LoadingDots } from './animations';
+export { TiltCard, MagneticButton } from './tilt-card';
+export { ThemeEngineProvider, useThemeEngine, ThemeEnginePanel, AccentColorPicker, SliderControl, FontPresetSelector } from './theme-engine';
+export { CursorGlow, GlowTrail, MagneticButton as MagneticButtonEffect } from './cursor-effects';
+export { AnimatedBackground, ParticleField, FloatingOrb, GrainOverlay, GradientMesh } from './immersive-background';
+export { SpringLab, ColorHarmony } from './spring-lab';
+export { LottiePlayer, AnimatedSVGPath, MorphIcon, LoadingOrbit, SuccessBurst } from './lottie-components';
+export { HapticButton, VisualHaptic, HoverHaptic } from './haptic-effects';
+export { SpatialCard, ZLayer, SpatialContainer, ActivityRing, TimeAwareGradient } from './spatial-ui';
+export { ToastProvider, useToast, generateSmartMessage, SmartEmptyState, ContextualGreeting } from './microcopy';
