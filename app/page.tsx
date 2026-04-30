@@ -249,29 +249,38 @@ const PlatformRow = memo(({ platform }: { platform: typeof PLATFORMS[0] }) => {
 });
 PlatformRow.displayName = 'PlatformRow';
 
-const KPICard = memo(({ kpi, index }: { kpi: typeof KPIs[0]; index: number }) => (
-  <motion.div
-    role="region"
-    aria-label={`${kpi.name}: ${kpi.value}`}
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ delay: index * 0.05 }}
-    style={{
-      padding: 24,
-      borderRadius: 16,
-      background: 'var(--bg-surface)',
-      backdropFilter: 'blur(20px)',
-      border: '1px solid var(--border-default)',
-    }}
-  >
-    <span style={{ fontSize: 11, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: 0.5 }}>{kpi.name}</span>
-    <p style={{ fontSize: 28, fontWeight: 700, color: kpi.color, margin: '12px 0 8px' }}>{kpi.value}</p>
-    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-      <TrendIcon trend={kpi.trend} />
-      <span style={{ fontSize: 11, color: kpi.trend === 'alert' ? '#f43f5e' : '#10b981', fontWeight: 600 }}>{kpi.change}</span>
-    </div>
-  </motion.div>
-));
+const KPICard = memo(({ kpi, index }: { kpi: typeof KPIs[0]; index: number }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  return (
+    <motion.div
+      role="region"
+      aria-label={`${kpi.name}: ${kpi.value}`}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.05, type: 'spring', stiffness: 200, damping: 20 }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      style={{
+        padding: 24,
+        borderRadius: 16,
+        background: 'var(--bg-surface)',
+        backdropFilter: 'blur(20px)',
+        border: '1px solid var(--border-default)',
+        transform: isHovered ? 'translateY(-4px)' : 'translateY(0)',
+        boxShadow: isHovered ? `0 20px 40px ${kpi.color}15` : 'none',
+        transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+        cursor: 'pointer',
+      }}
+    >
+      <span style={{ fontSize: 11, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: 0.5 }}>{kpi.name}</span>
+      <p style={{ fontSize: 28, fontWeight: 700, color: kpi.color, margin: '12px 0 8px' }}>{kpi.value}</p>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <TrendIcon trend={kpi.trend} />
+        <span style={{ fontSize: 11, color: kpi.trend === 'alert' ? '#f43f5e' : '#10b981', fontWeight: 600 }}>{kpi.change}</span>
+      </div>
+    </motion.div>
+  );
+});
 KPICard.displayName = 'KPICard';
 
 function DashboardContent() {
@@ -560,19 +569,62 @@ function DashboardContent() {
               <span style={{ fontSize: 11, color: primary, fontWeight: 600 }}>{rateLimit.remaining}/{rateLimit.limit}</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                style={{
+                  position: 'relative',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: 36,
+                  height: 36,
+                  borderRadius: 8,
+                  background: bgSurface,
+                  border: '1px solid ' + border,
+                  cursor: 'pointer',
+                  color: textSecondary,
+                }}
+                aria-label="View notifications"
+              >
+                <Activity size={16} />
+                <motion.span
+                  animate={{ scale: [1, 1.2, 1], opacity: [0.8, 1, 0.8] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  style={{
+                    position: 'absolute',
+                    top: 6,
+                    right: 6,
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    background: '#f43f5e',
+                    border: '2px solid ' + bgBg,
+                  }}
+                />
+              </motion.button>
               <div
                 role="status"
                 aria-label="System status: healthy"
                 style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: '50%',
-                  background: '#10b981',
-                  boxShadow: '0 0 8px #10b981',
-                  animation: 'pulse-glow 2s ease-in-out infinite',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
                 }}
-              />
-              <span className="hide-mobile" style={{ fontSize: 12, color: textDim }}>{health.status}</span>
+              >
+                <motion.div
+                  animate={{ scale: [1, 1.3, 1], opacity: [1, 0.6, 1] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    background: '#10b981',
+                    boxShadow: '0 0 8px #10b981',
+                  }}
+                />
+                <span className="hide-mobile" style={{ fontSize: 12, color: textDim }}>{health.status}</span>
+              </div>
             </div>
           </nav>
         </div>
@@ -677,9 +729,36 @@ function DashboardContent() {
                 justifyContent: isSidebarCollapsed ? 'center' : 'flex-start',
               }}
             >
-              <Activity size={14} style={{ color: 'var(--accent-emerald)' }} aria-hidden="true" />
+              <motion.div
+                animate={{ scale: [1, 1.3, 1], opacity: [1, 0.6, 1] }}
+                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: '50%',
+                  background: '#10b981',
+                  boxShadow: '0 0 8px #10b981',
+                  flexShrink: 0,
+                }}
+              />
               {!isSidebarCollapsed && <span style={{ fontSize: 11, color: textDim }}>System Healthy</span>}
             </div>
+            {!isSidebarCollapsed && (
+              <div style={{ marginTop: 12, padding: '8px 0' }}>
+                <p style={{ fontSize: 10, color: textDim, margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: 0.5 }}>Live Activity</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {[
+                    { text: 'Metrics synced', time: '2s ago' },
+                    { text: 'Alert resolved', time: '14m ago' },
+                  ].map((item, i) => (
+                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: 10, color: textSecondary }}>{item.text}</span>
+                      <span style={{ fontSize: 9, color: textDim }}>{item.time}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </aside>
 
@@ -784,7 +863,7 @@ function DashboardContent() {
               }}
               aria-hidden="true"
             />
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 24, position: 'relative' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 24, position: 'relative' }}>
               <div
                 style={{
                   width: 100,
@@ -798,9 +877,20 @@ function DashboardContent() {
                   fontWeight: 700,
                   boxShadow: '0 0 40px ' + primary + '40',
                   flexShrink: 0,
+                  position: 'relative',
                 }}
                 aria-hidden="true"
               >
+                <motion.div
+                  style={{
+                    position: 'absolute',
+                    inset: -4,
+                    borderRadius: 24,
+                    border: '2px solid ' + primary + '40',
+                  }}
+                  animate={{ scale: [1, 1.1, 1], opacity: [0.6, 0.2, 0.6] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                />
                 SC
               </div>
               <div style={{ flex: 1 }}>
@@ -912,7 +1002,31 @@ function DashboardContent() {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
                   <div style={cardStyle}>
-                    <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 16, color: textPrimary }}>Key Metrics</h3>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                      <h3 style={{ fontSize: 14, fontWeight: 600, margin: 0, color: textPrimary }}>Key Metrics</h3>
+                      <motion.button
+                        onClick={() => { setIsLoading(true); setTimeout(() => setIsLoading(false), 800); }}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.95 }}
+                        style={{
+                          background: 'rgba(255,255,255,0.06)',
+                          border: 'none',
+                          borderRadius: 8,
+                          width: 28,
+                          height: 28,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer',
+                          color: textDim,
+                        }}
+                        aria-label="Refresh metrics"
+                      >
+                        <motion.span animate={{ rotate: isLoading ? 360 : 0 }} transition={{ duration: 0.8, repeat: isLoading ? Infinity : 0, ease: 'linear' }}>
+                          <RefreshCw size={12} />
+                        </motion.span>
+                      </motion.button>
+                    </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                       {KPIs.slice(0, 4).map((kpi) => (
                         <div key={kpi.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -920,6 +1034,7 @@ function DashboardContent() {
                           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                             <TrendIcon trend={kpi.trend} />
                             <span style={{ fontSize: 14, fontWeight: 600, color: kpi.color }}>{kpi.value}</span>
+                            <CopyButton value={kpi.value} />
                           </div>
                         </div>
                       ))}

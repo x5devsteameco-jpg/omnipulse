@@ -75,7 +75,12 @@ export default function LoginPage() {
         }}
       >
         {/* Logo */}
-        <div style={{ textAlign: 'center', marginBottom: 48 }}>
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.1, type: 'spring', stiffness: 200 }}
+          style={{ textAlign: 'center', marginBottom: 48 }}
+        >
           <div style={{
             width: 64,
             height: 64,
@@ -86,7 +91,18 @@ export default function LoginPage() {
             justifyContent: 'center',
             margin: '0 auto 20px',
             boxShadow: '0 0 40px rgba(212, 175, 55, 0.3)',
+            position: 'relative',
           }}>
+            <motion.div
+              style={{
+                position: 'absolute',
+                inset: -4,
+                borderRadius: 20,
+                border: '2px solid rgba(212, 175, 55, 0.3)',
+              }}
+              animate={{ scale: [1, 1.1, 1], opacity: [0.5, 0.2, 0.5] }}
+              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+            />
             <span style={{ fontSize: 28, fontWeight: 700, color: '#000' }}>O</span>
           </div>
           <h1 style={{ fontSize: 24, fontWeight: 700, color: '#fafafa', margin: '0 0 8px' }}>
@@ -95,7 +111,7 @@ export default function LoginPage() {
           <p style={{ fontSize: 14, color: '#71717a', margin: 0 }}>
             Platinum Social Intelligence
           </p>
-        </div>
+        </motion.div>
 
         {/* Login form */}
         <div style={{

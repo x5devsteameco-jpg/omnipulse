@@ -267,18 +267,23 @@ export default function HomePage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.08 }}
+                whileHover={{ scale: 1.02, y: -4 }}
                 style={{
                   padding: 28,
                   borderRadius: 16,
                   background: 'rgba(255, 255, 255, 0.02)',
                   border: '1px solid rgba(255, 255, 255, 0.06)',
-                  transition: 'border-color 0.2s',
+                  transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                  position: 'relative',
+                  overflow: 'hidden',
                 }}
                 onMouseEnter={(e) => {
                   (e.currentTarget as HTMLDivElement).style.borderColor = feature.color + '40';
+                  (e.currentTarget as HTMLDivElement).style.boxShadow = `0 20px 40px ${feature.color}15`;
                 }}
                 onMouseLeave={(e) => {
                   (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255, 255, 255, 0.06)';
+                  (e.currentTarget as HTMLDivElement).style.boxShadow = 'none';
                 }}
               >
                 <div style={{
