@@ -1,6 +1,59 @@
 # AEG SCORPION ENGINE
 ## Social Media Intelligence Platform — Technical Build Summary
-**Version:** 1.4.0 | **Built:** April 29, 2026 | **Live:** https://aeg-scraper.vercel.app
+**Version:** 2.1.0 | **Built:** April 30, 2026 | **Live:** https://aeg-scraper.vercel.app
+
+---
+
+## Changelog
+
+### v2.1.0 — Immersive UI Integration (April 30, 2026)
+- **AnimatedBackground**: Canvas particle field (50 particles with twinkle), 4 floating orbs, gradient mesh, grain overlay
+- **CursorGlow**: 32px gold halo following cursor with spring lag (60ms)
+- **GlowTrail**: 10-dot trail following mouse with fade
+- **TimeAwareGradient**: Background shifts based on time of day (warm amber morning, cool evening/night)
+- **ThemeEngineProvider + ThemeEnginePanel**: 11-token customization (accent color, blur intensity, animation speed, spring physics, border radius, spacing scale, font presets)
+- **ToastProvider**: Contextual toast notification system
+- **SpringLab**: Live spring physics tuning (5 presets: crisp/smooth/bouncy/heavy/subtle)
+- **ColorHarmony**: Auto-generate harmonious palettes from base accent color (5 harmony modes)
+- **SpatialCard**: Z-depth card elevation with hover lift effect
+- **HapticButton/VisualHaptic**: Visual haptic simulation on click (light/medium/heavy)
+- **SmartEmptyState**: Context-aware empty states for each data type
+- **DataProvider**: Data-agnostic integration layer with typed interfaces (no fake filler data)
+
+### v2.0.0 — UI Enhancement Pass 1-3 (April 29, 2026)
+- Motion System: TiltCard with 3D parallax, MagneticButton, spring physics lab
+- Visual Polish: CursorGlow, GlowTrail, haptic simulation components
+- Immersive BG: ParticleField canvas, FloatingOrb, GradientMesh, GrainOverlay
+- Typography: Variable font system with 5 pairing presets
+- Theme Engine: 11 tunable tokens, spring physics customization
+- Lottie: MorphIcon, LoadingOrbit, SuccessBurst, AnimatedSVGPath
+- Spatial UI: Z-layer depth cards, SpatialContainer, ActivityRing
+- Microcopy: ToastProvider, SmartEmptyState, ContextualGreeting
+- Data Layer: DataProvider for data-agnostic components (zero fake filler)
+- Documentation: 4-pass enhancement roadmap with implementation specs
+
+### v1.7.0 — Backlog Features (April 29, 2026)
+- BentoGrid, GuidedTour (6-step), Tooltips (12 placements), DraggableList (framer-motion Reorder)
+- RealTime updates: LiveIndicator, AnimatedNumber, useRealTimeUpdates hook
+- ExportModal: CSV/JSON/Excel with format selection
+- VirtualTable: virtualized with SortableHeader
+- Advanced Animations: StaggeredList, CountUpNumber, LoadingDots, RippleEffect
+- Custom scrollbars: .custom-scrollbar, .scrollbar-thin, .scrollbar-dark
+
+### v1.6.0 — Phase 1-3 Complete (April 28, 2026)
+- Full design system tokens (WCAG AA compliant)
+- ARIA accessibility (skip links, roles, labels, keyboard shortcuts)
+- Theme toggle: Light/Dark/System with localStorage persistence
+- Mobile sidebar with collapse animation
+- OnboardingWizard wired (auto-triggers on first visit)
+- Keyboard shortcuts: Cmd+K (command palette), Cmd+B (sidebar toggle), Esc (close modals)
+
+### v1.5.0 — Optimization Roadmap V2 (April 27, 2026)
+- Lucide React icons (1.14.0)
+- CommandPalette with fuzzy search and keyboard navigation
+- Skeleton loading states (Skeleton, SkeletonCard, SkeletonTable)
+- Cache layer: MockRedisClient with TTL simulation
+- Light/Dark mode toggle
 
 ---
 
@@ -18,9 +71,11 @@
 ### Key Outcomes
 | Metric | Value |
 |--------|-------|
+| Version | 2.1.0 |
 | Platforms Integrated | 6 (Instagram, Twitter, Facebook, TikTok, YouTube, LinkedIn) |
-| API Endpoints | 11 RESTful routes |
-| Frontend Components | 6 React components with animations |
+| API Endpoints | 30 RESTful routes |
+| Frontend Components | 40+ UI components |
+| UI Enhancement Components | 12 new (TiltCard, CursorGlow, GlowTrail, AnimatedBackground, ThemeEngine, SpatialCard, HapticButton, SpringLab, ColorHarmony, LottiePlayer, MorphIcon, ToastProvider) |
 | Build Status | ✅ Compiles successfully |
 | Deployment | ✅ Live on Vercel Edge Network |
 | Data Storage | JSON file-based (/tmp/aeg-data) |
