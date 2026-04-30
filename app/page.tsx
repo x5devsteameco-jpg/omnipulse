@@ -43,6 +43,7 @@ import { CursorGlow, GlowTrail } from '../lib/ui/cursor-effects';
 import { TimeAwareGradient } from '../lib/ui/spatial-ui';
 import { ToastProvider } from '../lib/ui/microcopy';
 import { ThemeEngineProvider, ThemeEnginePanel } from '../lib/ui/theme-engine';
+import KeyboardShortcuts from '../components/KeyboardShortcuts';
 import type { TenantConfig } from '../lib/types/tenant';
 
 const SABRINA_TENANT_CONFIG: TenantConfig = {
@@ -280,6 +281,7 @@ function DashboardContent() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showThemePanel, setShowThemePanel] = useState(false);
+  const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
   const [health] = useState({ status: 'healthy', uptime: 99.97, requests: 894234, cacheHit: 94.2 });
   const [rateLimit] = useState({ limit: 1000, remaining: 847 });
 
@@ -325,10 +327,18 @@ function DashboardContent() {
       e.preventDefault();
       setIsSidebarCollapsed((prev) => !prev);
     }
+    if ((e.metaKey || e.ctrlKey) && e.key === '/') {
+      e.preventDefault();
+      setShowKeyboardShortcuts(true);
+    }
+    if (e.key === '?' && !e.target?.toString().includes('input')) {
+      setShowKeyboardShortcuts(true);
+    }
     if (e.key === 'Escape') {
       setIsCommandPaletteOpen(false);
       setIsOnboardingOpen(false);
       setIsMobileMenuOpen(false);
+      setShowKeyboardShortcuts(false);
     }
   }, []);
 
@@ -1252,6 +1262,10 @@ function DashboardContent() {
             <ThemeEnginePanel />
           </motion.div>
         )}
+        <KeyboardShortcuts
+          isOpen={showKeyboardShortcuts}
+          onClose={() => setShowKeyboardShortcuts(false)}
+        />
       </div>
       </ToastProvider>
     </ThemeEngineProvider>
