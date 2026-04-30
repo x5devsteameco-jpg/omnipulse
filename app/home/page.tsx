@@ -86,20 +86,10 @@ export default function HomePage() {
         maxWidth: 1280,
         margin: '0 auto',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{
-            width: 36,
-            height: 36,
-            borderRadius: 10,
-            background: 'linear-gradient(135deg, #d4af37, #22c55e)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
-            <span style={{ fontSize: 18, fontWeight: 700, color: '#000' }}>O</span>
-          </div>
-          <span style={{ fontSize: 18, fontWeight: 700 }}>Omnipulse</span>
-        </div>
+<div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+           <img src="/logo.svg" alt="Omnipulse" width="36" height="36" style={{ borderRadius: 10 }} />
+           <span style={{ fontSize: 18, fontWeight: 700 }}>Omnipulse</span>
+         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
           <a href="#features" style={{ fontSize: 14, color: '#a1a1aa', textDecoration: 'none' }}>Features</a>
           <a href="#changelog" style={{ fontSize: 14, color: '#a1a1aa', textDecoration: 'none' }}>Changelog</a>
@@ -428,17 +418,7 @@ export default function HomePage() {
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 24 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{
-              width: 28,
-              height: 28,
-              borderRadius: 8,
-              background: 'linear-gradient(135deg, #d4af37, #22c55e)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-              <span style={{ fontSize: 14, fontWeight: 700, color: '#000' }}>O</span>
-            </div>
+            <img src="/logo.svg" alt="Omnipulse" width="28" height="28" style={{ borderRadius: 8 }} />
             <span style={{ fontSize: 14, fontWeight: 600 }}>Omnipulse</span>
           </div>
           <div style={{ display: 'flex', gap: 32 }}>

@@ -298,6 +298,14 @@ function DashboardContent() {
   const [health] = useState({ status: 'healthy', uptime: 99.97, requests: 894234, cacheHit: 94.2 });
   const [rateLimit] = useState({ limit: 1000, remaining: 847 });
   const [selectedGap, setSelectedGap] = useState<(typeof GAPS)[0] | null>(null);
+  const [loggedInUser, setLoggedInUser] = useState<string>('');
+
+  useEffect(() => {
+    try {
+      const stored = sessionStorage.getItem('omnipulse_demo');
+      if (stored) setLoggedInUser(stored);
+    } catch {}
+  }, []);
 
   const WORKSPACES = [
     { id: 'ws_sabrina', name: 'Sabrina Carpenter', slug: 'sabrina-carpenter', tier: 'enterprise' as const, isActive: true },
@@ -448,23 +456,7 @@ function DashboardContent() {
             >
               <Menu size={20} />
             </button>
-            <div
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 10,
-                background: 'linear-gradient(135deg, ' + primary + ', ' + accent + ')',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: 700,
-                fontSize: 18,
-                color: '#000',
-              }}
-              aria-hidden="true"
-            >
-              O
-            </div>
+            <img src="/logo.svg" alt="Omnipulse" width={40} height={40} aria-hidden="true" style={{ borderRadius: 10 }} />
             <div>
               <WorkspaceSwitcher
                 workspaces={WORKSPACES}
@@ -625,6 +617,14 @@ function DashboardContent() {
                 />
                 <span className="hide-mobile" style={{ fontSize: 12, color: textDim }}>{health.status}</span>
               </div>
+              {loggedInUser && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 12px', borderRadius: 8, background: primary + '15', border: '1px solid ' + primary + '30' }}>
+                  <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'linear-gradient(135deg, ' + primary + ', ' + accent + ')', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#000' }}>
+                    {loggedInUser[0].toUpperCase()}
+                  </div>
+                  <span style={{ fontSize: 11, color: primary }}>{loggedInUser.split('@')[0]}</span>
+                </div>
+              )}
             </div>
           </nav>
         </div>

@@ -3,6 +3,12 @@
 import React, { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, ArrowRight, Lock, Mail, Users } from 'lucide-react';
+import Link from 'next/link';
+
+const DEMO_ACCOUNTS = [
+  { email: 'demo@omnipulse.com', password: 'demo123', label: 'Demo Account' },
+  { email: 'sabrina@omnipulse.com', password: 'sabrina123', label: 'Sabrina Carpenter' },
+];
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -19,8 +25,15 @@ export default function LoginPage() {
     }
     setIsLoading(true);
     setError('');
-    await new Promise((r) => setTimeout(r, 1200));
-    window.location.href = '/';
+    await new Promise((r) => setTimeout(r, 800));
+    const valid = DEMO_ACCOUNTS.find((a) => a.email === email && a.password === password);
+    if (valid) {
+      try { sessionStorage.setItem('omnipulse_demo', email); } catch {}
+      window.location.href = '/';
+    } else {
+      setError('Invalid credentials. Try demo@omnipulse.com / demo123');
+    }
+    setIsLoading(false);
   }, [email, password]);
 
   return (
@@ -103,7 +116,7 @@ export default function LoginPage() {
               animate={{ scale: [1, 1.1, 1], opacity: [0.5, 0.2, 0.5] }}
               transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
             />
-            <span style={{ fontSize: 28, fontWeight: 700, color: '#000' }}>O</span>
+            <img src="/logo.svg" alt="Omnipulse" width="40" height="40" />
           </div>
           <h1 style={{ fontSize: 24, fontWeight: 700, color: '#fafafa', margin: '0 0 8px' }}>
             Omnipulse
@@ -299,6 +312,34 @@ export default function LoginPage() {
             <Users size={18} style={{ color: '#71717a' }} />
             Continue with SSO
           </button>
+        </div>
+
+        <div style={{ marginTop: 20, padding: 16, borderRadius: 12, background: 'rgba(212, 175, 55, 0.05)', border: '1px solid rgba(212, 175, 55, 0.15)' }}>
+          <p style={{ fontSize: 11, color: '#d4af37', textTransform: 'uppercase', letterSpacing: 0.5, margin: '0 0 12px', textAlign: 'center' }}>Demo Accounts</p>
+          {DEMO_ACCOUNTS.map((acc) => (
+            <button
+              key={acc.email}
+              onClick={() => { setEmail(acc.email); setPassword(acc.password); }}
+              style={{
+                width: '100%',
+                padding: '10px 14px',
+                borderRadius: 8,
+                background: 'rgba(255, 255, 255, 0.04)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                color: '#fafafa',
+                fontSize: 13,
+                cursor: 'pointer',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: 6,
+              }}
+            >
+              <span>{acc.label}</span>
+              <span style={{ fontSize: 11, color: '#71717a', fontFamily: 'monospace' }}>{acc.email}</span>
+            </button>
+          ))}
+          <p style={{ fontSize: 10, color: '#71717a', margin: '8px 0 0', textAlign: 'center' }}>Password for both: demo123 / sabrina123</p>
         </div>
 
         {/* Sign up link */}
