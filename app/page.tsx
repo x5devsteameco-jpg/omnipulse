@@ -38,6 +38,11 @@ import { PlatformIcon, PlatformIconWithBg } from '../lib/ui/platform-icons';
 import { CommandPalette } from '../lib/ui/command-palette';
 import { OnboardingWizard } from '../lib/ui/onboarding-wizard';
 import { Skeleton, SkeletonCard, SkeletonTable } from '../lib/ui/skeleton';
+import { AnimatedBackground } from '../lib/ui/immersive-background';
+import { CursorGlow, GlowTrail } from '../lib/ui/cursor-effects';
+import { TimeAwareGradient } from '../lib/ui/spatial-ui';
+import { ToastProvider } from '../lib/ui/microcopy';
+import { ThemeEngineProvider, ThemeEnginePanel } from '../lib/ui/theme-engine';
 import type { TenantConfig } from '../lib/types/tenant';
 
 const SABRINA_TENANT_CONFIG: TenantConfig = {
@@ -274,6 +279,7 @@ function DashboardContent() {
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showThemePanel, setShowThemePanel] = useState(false);
   const [health] = useState({ status: 'healthy', uptime: 99.97, requests: 894234, cacheHit: 94.2 });
   const [rateLimit] = useState({ limit: 1000, remaining: 847 });
 
@@ -355,17 +361,23 @@ function DashboardContent() {
   }, [resolvedMode]);
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, ' + bgBg + ' 0%, ' + bgSurface + ' 50%, ' + bgBg + ' 100%)',
-        color: textPrimary,
-        fontFamily: theme?.fontFamily || 'Inter, sans-serif',
-      }}
-    >
-      <a href="#main-content" className="skip-link">Skip to main content</a>
+    <ThemeEngineProvider>
+      <ToastProvider>
+        <AnimatedBackground type="all" particleCount={50} orbCount={4} />
+        <CursorGlow size={32} lag={60} />
+        <GlowTrail dotCount={10} />
+        <TimeAwareGradient />
+        <div
+          style={{
+            minHeight: '100vh',
+            background: 'linear-gradient(135deg, ' + bgBg + ' 0%, ' + bgSurface + ' 50%, ' + bgBg + ' 100%)',
+            color: textPrimary,
+            fontFamily: theme?.fontFamily || 'Inter, sans-serif',
+          }}
+        >
+          <a href="#main-content" className="skip-link">Skip to main content</a>
 
-      <header
+          <header
         role="banner"
         style={{
           borderBottom: '1px solid ' + border,
@@ -485,6 +497,25 @@ function DashboardContent() {
               }}
             >
               <HelpCircle size={16} />
+            </button>
+
+            <button
+              onClick={() => setShowThemePanel(!showThemePanel)}
+              aria-label="Toggle theme engine panel"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 36,
+                height: 36,
+                borderRadius: 8,
+                background: showThemePanel ? primary + '20' : bgSurface,
+                border: '1px solid ' + (showThemePanel ? primary + '40' : border),
+                cursor: 'pointer',
+                color: showThemePanel ? primary : textSecondary,
+              }}
+            >
+              <Settings size={16} />
             </button>
 
             <div
@@ -1205,7 +1236,25 @@ function DashboardContent() {
         onClose={() => setIsOnboardingOpen(false)}
         onComplete={handleOnboardingComplete}
       />
-    </div>
+        {showThemePanel && (
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            style={{
+              position: 'fixed',
+              top: 80,
+              right: 32,
+              width: 320,
+              zIndex: 200,
+            }}
+          >
+            <ThemeEnginePanel />
+          </motion.div>
+        )}
+      </div>
+      </ToastProvider>
+    </ThemeEngineProvider>
   );
 }
 
